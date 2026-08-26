@@ -34,6 +34,7 @@
             overflow: hidden;
         }
 
+        /* 可點選圖案連結通用特效 */
         .clickable {
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -43,23 +44,23 @@
             filter: drop-shadow(0 0 12px var(--glow-color)) brightness(1.1);
         }
 
-        /* === 5. 左上角返回箭頭按鈕 === */
-        .back-arrow {
-            position: absolute;
-            top: 25px;
-            left: 25px;
-            width: 50px;
-            height: 50px;
-            background: white;
-            border: 3px solid #a5d6a7;
+        /* === 返回上一頁箭頭按鈕 (左上角) === */
+        .btn-back-arrow {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 52px;
+            height: 52px;
+            background: #ffffff;
+            border: 3px solid #81c784;
             border-radius: 50%;
-            display: flex;
+            display: none;
             justify-content: center;
             align-items: center;
             font-size: 1.8rem;
             color: #2e7d32;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 999;
         }
 
         /* === 畫面切換容器 === */
@@ -89,8 +90,8 @@
         /* 放大蘋果樹容器 */
         .tree-container {
             position: relative;
-            width: 300px;
-            height: 300px;
+            width: 280px;
+            height: 280px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -98,31 +99,43 @@
         }
 
         #tree-svg {
-            width: 280px;
-            height: 280px;
+            width: 260px;
+            height: 260px;
         }
 
         /* 水滴被吸入動畫 */
         .water-drop {
             position: absolute;
-            bottom: 10px;
+            bottom: 5px;
             width: 20px;
             height: 20px;
             background-color: #29b6f6;
             border-radius: 50% 50% 50% 0;
             transform: rotate(-45deg);
-            animation: absorb 1.2s infinite ease-in;
+            animation: absorb 1.5s infinite ease-in;
         }
 
         @keyframes absorb {
             0% { transform: translateY(40px) scale(1) rotate(-45deg); opacity: 0; }
             50% { opacity: 1; }
-            100% { transform: translateY(-30px) scale(0.2) rotate(-45deg); opacity: 0; }
+            100% { transform: translateY(-80px) scale(0.3) rotate(-45deg); opacity: 0; }
         }
 
-        /* 2. 放大蘋果與裂開動畫 */
-        .apple-container {
+        /* 水填滿中空樹木動畫 */
+        .water-fill-anim {
+            animation: fillWater 2.8s ease-in-out forwards;
+        }
+
+        @keyframes fillWater {
+            0% { transform: translateY(180px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* 大蘋果容器與 3 秒裂開動畫 */
+        .apple-wrapper {
             position: absolute;
+            width: 240px;
+            height: 240px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -131,49 +144,84 @@
         }
 
         .apple-half {
-            width: 120px;
-            height: 200px;
-            background-color: #ff5252;
-            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.15);
-            /* 2秒裂開動畫 */
-            transition: transform 2s cubic-bezier(0.25, 1, 0.5, 1), opacity 2s ease;
+            position: relative;
+            width: 100px;
+            height: 180px;
+            background-color: #ff3b30;
+            /* 3 秒分裂動畫 */
+            transition: transform 3s cubic-bezier(0.25, 1, 0.5, 1), opacity 3s ease;
+            box-shadow: inset -4px -4px 10px rgba(0,0,0,0.15);
         }
 
         .apple-left {
-            border-radius: 100px 0 0 100px;
+            border-radius: 90px 0 20px 90px;
         }
 
         .apple-right {
-            border-radius: 0 100px 100px 0;
+            border-radius: 0 90px 90px 20px;
         }
 
-        .apple-container.split .apple-left {
-            transform: translateX(-180px) rotate(-20deg);
+        /* 蒂頭 (Stem) */
+        .stem-left {
+            position: absolute;
+            top: -22px;
+            right: 0;
+            width: 6px;
+            height: 26px;
+            background-color: #5d4037;
+            border-radius: 3px 0 0 0;
+        }
+        .stem-right {
+            position: absolute;
+            top: -22px;
+            left: 0;
+            width: 6px;
+            height: 26px;
+            background-color: #5d4037;
+            border-radius: 0 3px 0 0;
+        }
+
+        /* 葉子 (Leaf) */
+        .leaf-right {
+            position: absolute;
+            top: -24px;
+            left: 6px;
+            width: 38px;
+            height: 22px;
+            background-color: #4caf50;
+            border-radius: 0 22px 0 22px;
+            transform: rotate(-10deg);
+            box-shadow: 1px 1px 4px rgba(0,0,0,0.2);
+        }
+
+        /* 裂開位移 */
+        .apple-wrapper.split .apple-left {
+            transform: translateX(-180px) rotate(-25deg);
             opacity: 0;
         }
 
-        .apple-container.split .apple-right {
-            transform: translateX(180px) rotate(20deg);
+        .apple-wrapper.split .apple-right {
+            transform: translateX(180px) rotate(25deg);
             opacity: 0;
         }
 
         .title-text {
             position: absolute;
-            font-size: 3.2rem;
+            font-size: 3rem;
             font-weight: bold;
             color: #2e7d32;
-            text-shadow: 2px 2px 6px rgba(0,0,0,0.15);
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.18);
             opacity: 0;
-            transform: scale(0.5);
+            transform: scale(0.6);
             transition: all 1.2s ease;
             white-space: nowrap;
         }
 
-        /* === 主選單與頁面通用樣式 === */
+        /* === 2. 主選單與年級選擇 === */
         .main-title {
             position: absolute;
             top: 15%;
-            font-size: 2.4rem;
+            font-size: 2.6rem;
             font-weight: bold;
             color: #2e7d32;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
@@ -199,9 +247,9 @@
             animation: fadeInUp 0.5s forwards;
         }
 
-        .btn-card:nth-child(1) { animation-delay: 0.1s; }
-        .btn-card:nth-child(2) { animation-delay: 0.3s; }
-        .btn-card:nth-child(3) { animation-delay: 0.5s; }
+        .btn-card:nth-child(1) { animation-delay: 0.2s; }
+        .btn-card:nth-child(2) { animation-delay: 0.4s; }
+        .btn-card:nth-child(3) { animation-delay: 0.6s; }
 
         @keyframes fadeInUp {
             to { opacity: 1; transform: translateY(0); }
@@ -223,13 +271,13 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        /* === 3 & 4. 測驗畫面與控制按鈕 === */
+        /* === 3. 是非題測驗畫面 === */
         #quiz-screen {
             display: flex;
             flex-direction: column;
             width: 90vw;
             max-width: 900px;
-            height: 82vh;
+            height: 80vh;
             gap: 20px;
         }
 
@@ -242,7 +290,7 @@
             justify-content: center;
             align-items: center;
             padding: 30px;
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: bold;
             text-align: center;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
@@ -267,87 +315,92 @@
             color: white;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             transition: all 0.5s ease;
-            opacity: 0.6;
+            opacity: 0.4;
         }
 
         .option-circle { background-color: var(--tf-blue); }
         .option-cross { background-color: var(--tf-red); }
 
+        /* 正確答案亮燈效果 */
         .option-card.highlight {
             opacity: 1;
-            transform: scale(1.03);
-            box-shadow: 0 0 35px rgba(255, 235, 59, 1), 0 0 15px rgba(0,0,0,0.2);
+            transform: scale(1.04);
+            box-shadow: 0 0 40px rgba(255, 235, 59, 1), 0 0 20px rgba(0,0,0,0.2);
             border: 6px solid #fff59d;
         }
 
-        /* 手動按鈕區域 */
-        .quiz-controls {
-            height: 60px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        /* 下一題提示圖案 */
+        .next-prompt {
+            font-size: 2.5rem;
+            color: #2e7d32;
+            background: #e8f5e9;
+            padding: 10px 30px;
+            border-radius: 50px;
+            border: 3px solid #81c784;
+            animation: pulse 1s infinite alternate;
         }
 
-        .btn-action {
-            background: #4caf50;
-            color: white;
-            font-size: 1.6rem;
-            font-weight: bold;
-            padding: 12px 40px;
-            border-radius: 30px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-            border: none;
+        @keyframes pulse {
+            from { transform: scale(0.95); }
+            to { transform: scale(1.05); }
         }
-        .btn-action:hover {
-            background: #388e3c;
+
+        /* 本階段結束可點選按鈕 */
+        .end-stage-btn {
+            background: #ff9800;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 40px;
+            font-size: 2.2rem;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+            border: 4px solid #fff;
         }
     </style>
 </head>
 <body>
 
-    <!-- 5. 左上角返回上一頁箭頭 -->
-    <div id="back-arrow" class="back-arrow clickable" style="display: none;" onclick="goBack()">⬅</div>
+    <!-- 左上角返回上一頁箭頭 (除了主頁外的頁面顯示) -->
+    <div id="btn-back" class="btn-back-arrow clickable" onclick="goBack()">⬅</div>
 
     <!-- 1. 開場動畫畫面 -->
     <div id="loading-screen" class="screen active">
-        <!-- 中空蘋果樹與水填滿動畫 -->
+        <!-- 中空蘋果樹與吸水動畫 -->
         <div class="tree-container" id="tree-box">
-            <svg id="tree-svg" viewBox="0 0 100 120">
+            <svg id="tree-svg" viewBox="0 0 200 200">
                 <defs>
                     <clipPath id="tree-clip">
-                        <path d="M 43 75 L 43 110 L 57 110 L 57 75 Z" />
-                        <circle cx="50" cy="45" r="28" />
-                        <circle cx="28" cy="55" r="18" />
-                        <circle cx="72" cy="55" r="18" />
+                        <path d="M 85 180 L 85 110 Q 40 105 40 70 Q 40 35 80 25 Q 100 5 120 25 Q 160 35 160 70 Q 160 105 115 110 L 115 180 Z" />
                     </clipPath>
                 </defs>
-
-                <!-- 外框中空樹木 -->
-                <path d="M 43 110 L 43 75 C 20 75 10 50 28 35 C 30 15 65 10 72 30 C 90 40 85 75 57 75 L 57 110 Z"
-                      stroke="#2e7d32" stroke-width="3" fill="rgba(255, 255, 255, 0.5)" stroke-linejoin="round" />
-                <path d="M 43 110 L 43 75 L 57 75 L 57 110" stroke="#5d4037" stroke-width="3" fill="none" />
-
-                <!-- 內部水填滿動畫 -->
+                <!-- 植物中空外框 -->
+                <path d="M 85 180 L 85 110 Q 40 105 40 70 Q 40 35 80 25 Q 100 5 120 25 Q 160 35 160 70 Q 160 105 115 110 L 115 180 Z" 
+                      fill="#ffffff" stroke="#2e7d32" stroke-width="7" />
+                <!-- 吸水填滿層 -->
                 <g clip-path="url(#tree-clip)">
-                    <rect x="0" y="115" width="100" height="115" fill="#29b6f6" opacity="0.85">
-                        <animate attributeName="y" from="115" to="10" dur="3s" fill="freeze" />
-                        <animate attributeName="height" from="0" to="105" dur="3s" fill="freeze" />
-                    </rect>
+                    <rect id="water-fill" class="water-fill-anim" x="30" y="0" width="140" height="190" fill="#29b6f6" opacity="0.85" />
                 </g>
+                <!-- 植物外邊框蓋層 -->
+                <path d="M 85 180 L 85 110 Q 40 105 40 70 Q 40 35 80 25 Q 100 5 120 25 Q 160 35 160 70 Q 160 105 115 110 L 115 180 Z" 
+                      fill="none" stroke="#2e7d32" stroke-width="7" />
             </svg>
             <div class="water-drop"></div>
         </div>
 
-        <!-- 2. 大蘋果裂開動畫 -->
-        <div class="apple-container" id="apple-box">
-            <div class="apple-half apple-left"></div>
-            <div class="apple-half apple-right"></div>
+        <!-- 大蘋果（含蒂頭、葉子與裂開動畫） -->
+        <div class="apple-wrapper" id="apple-box">
+            <div class="apple-half apple-left">
+                <div class="stem-left"></div>
+            </div>
+            <div class="apple-half apple-right">
+                <div class="stem-right"></div>
+                <div class="leaf-right"></div>
+            </div>
         </div>
 
         <div class="title-text" id="main-title-text">校園植物辨認大賽</div>
     </div>
 
-    <!-- 2. 主選單 (年級選擇) -->
+    <!-- 2. 年級選擇選單 (主頁) -->
     <div id="main-menu" class="screen">
         <div class="main-title">校園植物辨認大賽</div>
         <div class="button-group">
@@ -376,11 +429,6 @@
         <div class="options-box">
             <div class="option-card option-circle" id="opt-O">○</div>
             <div class="option-card option-cross" id="opt-X">×</div>
-        </div>
-        <!-- 3 & 4. 手動按鈕：下一題 / 本階段結束 -->
-        <div class="quiz-controls">
-            <div id="btn-next" class="btn-action clickable" style="display: none;" onclick="nextQuestion()">下一題 ➔</div>
-            <div id="btn-finish" class="btn-action clickable" style="display: none;" onclick="finishQuiz()">本階段結束 🏁</div>
         </div>
     </div>
 
@@ -414,131 +462,134 @@
         };
 
         let currentGrade = '';
-        let currentQuestions = [];
-        let currentQIndex = 0;
-        let historyStack = [];
-        let currentScreenId = 'loading-screen';
+        let quizSequenceActive = false;
 
-        // === 頁面導航與返回歷史紀錄 (需求 5) ===
-        function navigateTo(targetId, isBack = false) {
-            if (currentScreenId === targetId) return;
-
-            if (!isBack && currentScreenId && currentScreenId !== 'loading-screen') {
-                historyStack.push(currentScreenId);
-            }
-
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(targetId).classList.add('active');
-            currentScreenId = targetId;
-
-            // 除了主頁與載入頁之外，顯示左上角返回箭頭
-            const backArrow = document.getElementById('back-arrow');
-            if (targetId === 'main-menu' || targetId === 'loading-screen') {
-                backArrow.style.display = 'none';
-            } else {
-                backArrow.style.display = 'flex';
-            }
-        }
-
-        function goBack() {
-            if (historyStack.length > 0) {
-                const prevScreen = historyStack.pop();
-                navigateTo(prevScreen, true);
-            } else {
-                navigateTo('main-menu', true);
-            }
-        }
-
-        // === 1 & 2. 開場動畫流程 ===
+        // === 1. 開場動畫流程 ===
         window.addEventListener('DOMContentLoaded', () => {
             const treeBox = document.getElementById('tree-box');
             const appleBox = document.getElementById('apple-box');
             const titleText = document.getElementById('main-title-text');
 
-            // 吸水動畫 3 秒後隱藏蘋果樹並顯示大蘋果
+            // 樹木吸水填滿後切換成蘋果
             setTimeout(() => {
                 treeBox.style.opacity = '0';
                 setTimeout(() => {
                     treeBox.style.display = 'none';
                     appleBox.style.opacity = '1';
-                }, 500);
-            }, 3200);
+                }, 800);
+            }, 3000);
 
-            // 蘋果停留在畫面至少 3 秒後，執行 2 秒裂開動畫並出現標題
+            // 蘋果 3 秒裂開動畫與標題出現
             setTimeout(() => {
                 appleBox.classList.add('split');
                 titleText.style.opacity = '1';
                 titleText.style.transform = 'scale(1.2)';
-            }, 6800);
+            }, 4200);
 
-            // 動畫結束後自動進入主選單
+            // 切換至主選單頁面
             setTimeout(() => {
-                navigateTo('main-menu');
-            }, 9500);
+                switchScreen('loading-screen', 'main-menu');
+            }, 7800);
         });
+
+        // 畫面切換與返回箭頭控制
+        function switchScreen(fromId, toId) {
+            document.getElementById(fromId).classList.remove('active');
+            document.getElementById(toId).classList.add('active');
+            
+            const backBtn = document.getElementById('btn-back');
+            // 主頁與載入畫面隱藏返回箭頭，其餘頁面顯示
+            if (toId === 'main-menu' || toId === 'loading-screen') {
+                backBtn.style.display = 'none';
+            } else {
+                backBtn.style.display = 'flex';
+            }
+        }
+
+        // 返回上一頁功能
+        function goBack() {
+            quizSequenceActive = false;
+            const currentActive = document.querySelector('.screen.active').id;
+            
+            if (currentActive === 'quiz-screen') {
+                switchScreen('quiz-screen', 'type-menu');
+            } else if (currentActive === 'type-menu') {
+                switchScreen('type-menu', 'main-menu');
+            }
+        }
 
         function selectGrade(grade) {
             currentGrade = grade;
             const names = { low: '低年級', mid: '中年級', high: '高年級' };
             document.getElementById('grade-title-display').innerText = `${names[grade]} - 請選擇題型`;
-            navigateTo('type-menu');
+            switchScreen('main-menu', 'type-menu');
         }
 
-        // === 3 & 4. 測驗流程 ===
         function startQuiz(type) {
             if (type !== 'TF') return;
+            switchScreen('type-menu', 'quiz-screen');
 
             const pool = [...questionBank[currentGrade]];
-            currentQuestions = pool.sort(() => 0.5 - Math.random()).slice(0, 5);
-            currentQIndex = 0;
+            const shuffled = pool.sort(() => 0.5 - Math.random());
+            const selectedQuestions = shuffled.slice(0, 5);
 
-            navigateTo('quiz-screen');
-            loadQuestion(currentQIndex);
+            runTFQuiz(selectedQuestions);
         }
 
-        function loadQuestion(index) {
+        // === 3 & 4. 是非題測驗流程 ===
+        async function runTFQuiz(questions) {
+            quizSequenceActive = true;
             const qBox = document.getElementById('question-text');
             const optO = document.getElementById('opt-O');
             const optX = document.getElementById('opt-X');
-            const btnNext = document.getElementById('btn-next');
-            const btnFinish = document.getElementById('btn-finish');
 
-            // 清除狀態
-            optO.classList.remove('highlight');
-            optX.classList.remove('highlight');
-            btnNext.style.display = 'none';
-            btnFinish.style.display = 'none';
+            for (let i = 0; i < questions.length; i++) {
+                if (!quizSequenceActive) break;
 
-            const qData = currentQuestions[index];
-            qBox.innerText = `第 ${index + 1} 題：${qData.q}`;
+                optO.classList.remove('highlight');
+                optX.classList.remove('highlight');
 
-            // 亮燈顯示正確答案
-            setTimeout(() => {
-                if (qData.a === 'O') {
+                // 1. 顯示「第 X 題」持續 3 秒
+                qBox.innerText = `第 ${i + 1} 題`;
+                await sleep(3000);
+                if (!quizSequenceActive) break;
+
+                // 2. 顯示題目持續 5 秒
+                qBox.innerText = questions[i].q;
+                await sleep(5000);
+                if (!quizSequenceActive) break;
+
+                // 3. 亮起正確答案那一邊，持續 3 秒
+                if (questions[i].a === 'O') {
                     optO.classList.add('highlight');
                 } else {
                     optX.classList.add('highlight');
                 }
+                await sleep(3000);
+                if (!quizSequenceActive) break;
 
-                // 答完出現手動點選「下一題」或「本階段結束」
-                if (index < currentQuestions.length - 1) {
-                    btnNext.style.display = 'inline-block';
-                } else {
-                    btnFinish.style.display = 'inline-block';
-                }
-            }, 1200);
-        }
+                // 4. 出現「下一題」圖案字樣，持續 3 秒
+                optO.classList.remove('highlight');
+                optX.classList.remove('highlight');
+                qBox.innerHTML = `<div class="next-prompt">下一題 ➔</div>`;
+                await sleep(3000);
+            }
 
-        function nextQuestion() {
-            if (currentQIndex < currentQuestions.length - 1) {
-                currentQIndex++;
-                loadQuestion(currentQIndex);
+            // 答完 5 題後出現「本階段結束」可點選字樣
+            if (quizSequenceActive) {
+                optO.classList.remove('highlight');
+                optX.classList.remove('highlight');
+                qBox.innerHTML = `<div class="end-stage-btn clickable" onclick="goTypeMenu()">本階段結束 (點擊返回)</div>`;
             }
         }
 
-        function finishQuiz() {
-            // 點擊後回到該年級的題型選擇頁面 (type-menu)
-            navigateTo('type-menu');
+        function goTypeMenu() {
+            quizSequenceActive = false;
+            switchScreen('quiz-screen', 'type-menu');
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
     </script>
 </body>
