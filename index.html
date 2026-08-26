@@ -63,7 +63,7 @@
             pointer-events: auto;
         }
 
-        /* === 1. 開場動畫畫面 (Requirement 2) === */
+        /* === 1. 開場動畫畫面 === */
         #loading-screen {
             background-color: #e8f5e9;
         }
@@ -148,7 +148,7 @@
             white-space: nowrap;
         }
 
-        /* === 2. 主選單與年級選擇 (Requirement 3 & 4) === */
+        /* === 2. 主選單與年級選擇 === */
         .main-title {
             position: absolute;
             top: 15%;
@@ -204,7 +204,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        /* === 3. 是非題測驗畫面 (Requirement 6) === */
+        /* === 3. 是非題測驗畫面 === */
         #quiz-screen {
             display: flex;
             flex-direction: column;
@@ -301,7 +301,7 @@
         <div class="title-text" id="main-title-text">校園植物辨認大賽</div>
     </div>
 
-    <!-- 2. 年級選擇選單 (Requirement 3) -->
+    <!-- 2. 年級選擇選單 -->
     <div id="main-menu" class="screen">
         <div class="main-title">校園植物辨認大賽</div>
         <div class="button-group">
@@ -314,7 +314,7 @@
         </div>
     </div>
 
-    <!-- 3. 題型選擇選單 (Requirement 4) -->
+    <!-- 3. 題型選擇選單 -->
     <div id="type-menu" class="screen">
         <div class="main-title" id="grade-title-display">年級組別</div>
         <div class="button-group">
@@ -324,7 +324,7 @@
         </div>
     </div>
 
-    <!-- 4. 是非題測驗畫面 (Requirement 6) -->
+    <!-- 4. 是非題測驗畫面 -->
     <div id="quiz-screen" class="screen">
         <div class="question-box" id="question-text">準備開始...</div>
         <div class="options-box">
@@ -334,7 +334,7 @@
     </div>
 
     <script>
-        // === 題庫資料 (Requirement 5: 可自行修改擴充) ===
+        // === 題庫資料 ===
         const questionBank = {
             low: [
                 { q: "榕樹的樹幹上常常會有垂下來的氣根。", a: "O" },
@@ -365,13 +365,12 @@
         let currentGrade = '';
         let quizSequenceActive = false;
 
-        // === 1. 開場動畫流程控制 (Requirement 2 & 3) ===
+        // === 開場動畫流程 ===
         window.addEventListener('DOMContentLoaded', () => {
             const treeBox = document.getElementById('tree-box');
             const appleBox = document.getElementById('apple-box');
             const titleText = document.getElementById('main-title-text');
 
-            // 步驟 A: 吸收水分 2.5 秒後，樹淡出，大蘋果淡入
             setTimeout(() => {
                 treeBox.style.opacity = '0';
                 setTimeout(() => {
@@ -380,25 +379,21 @@
                 }, 500);
             }, 2500);
 
-            // 步驟 B: 大蘋果裂開，出現標題大字
             setTimeout(() => {
                 appleBox.classList.add('split');
                 titleText.style.opacity = '1';
                 titleText.style.transform = 'scale(1.2)';
             }, 4000);
 
-            // 步驟 C: 進入主頁面選單 (縮小標題，淡出年級選項)
             setTimeout(() => {
                 switchScreen('loading-screen', 'main-menu');
             }, 6000);
         });
 
-        // 通用畫面切換函式
         function switchScreen(fromId, toId) {
             document.getElementById(fromId).classList.remove('active');
             document.getElementById(toId).classList.add('active');
             
-            // 顯示/隱藏返回按鈕
             const backBtn = document.getElementById('btn-back');
             if (toId === 'main-menu' || toId === 'loading-screen') {
                 backBtn.style.display = 'none';
@@ -407,14 +402,12 @@
             }
         }
 
-        // 回主頁
         function goHome() {
-            quizSequenceActive = false; // 中斷測驗流程
+            quizSequenceActive = false;
             switchScreen('type-menu', 'main-menu');
             switchScreen('quiz-screen', 'main-menu');
         }
 
-        // === 2. 年級與題型選擇 (Requirement 4) ===
         function selectGrade(grade) {
             currentGrade = grade;
             const names = { low: '低年級', mid: '中年級', high: '高年級' };
@@ -422,12 +415,10 @@
             switchScreen('main-menu', 'type-menu');
         }
 
-        // === 3. 是非題測驗流程 (Requirement 5 & 6) ===
         function startQuiz(type) {
             if (type !== 'TF') return;
             switchScreen('type-menu', 'quiz-screen');
 
-            // 隨機抽 5 題
             const pool = [...questionBank[currentGrade]];
             const shuffled = pool.sort(() => 0.5 - Math.random());
             const selectedQuestions = shuffled.slice(0, 5);
@@ -435,7 +426,6 @@
             runTFQuiz(selectedQuestions);
         }
 
-        // 非同步控制「第X題(3s) -> 顯示題目(5s) -> 亮答案」循環
         async function runTFQuiz(questions) {
             quizSequenceActive = true;
             const qBox = document.getElementById('question-text');
@@ -445,21 +435,17 @@
             for (let i = 0; i < questions.length; i++) {
                 if (!quizSequenceActive) break;
 
-                // 重置狀態
                 optO.classList.remove('highlight');
                 optX.classList.remove('highlight');
 
-                // 1. 顯示「第 X 題」持續 3 秒
                 qBox.innerText = `第 ${i + 1} 題`;
                 await sleep(3000);
                 if (!quizSequenceActive) break;
 
-                // 2. 顯示題目內容持續 5 秒
                 qBox.innerText = questions[i].q;
                 await sleep(5000);
                 if (!quizSequenceActive) break;
 
-                // 3. 亮起正確答案那一邊 (持續 2.5 秒供學生確認)
                 if (questions[i].a === 'O') {
                     optO.classList.add('highlight');
                 } else {
