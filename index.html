@@ -32,35 +32,17 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            position: relative;
         }
 
-        /* 可點選圖案連結通用特效 */
+        /* 可點選圖案連結通用特效：滑過時微微亮起 */
         .clickable {
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         .clickable:hover {
-            transform: scale(1.06);
-            filter: drop-shadow(0 0 12px var(--glow-color)) brightness(1.1);
-        }
-
-        /* === 返回上一頁箭頭按鈕 (左上角) === */
-        .btn-back-arrow {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            width: 52px;
-            height: 52px;
-            background: #ffffff;
-            border: 3px solid #81c784;
-            border-radius: 50%;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.8rem;
-            color: #2e7d32;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 999;
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 12px var(--glow-color)) brightness(1.05);
         }
 
         /* === 畫面切換容器 === */
@@ -74,7 +56,7 @@
             align-items: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.8s ease;
+            transition: opacity 0.5s ease;
         }
 
         .screen.active {
@@ -87,28 +69,26 @@
             background-color: #e8f5e9;
         }
 
-        /* 放大蘋果樹容器 */
         .tree-container {
             position: relative;
-            width: 280px;
-            height: 280px;
+            width: 200px;
+            height: 200px;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.8s ease;
         }
 
         #tree-svg {
-            width: 260px;
-            height: 260px;
+            width: 150px;
+            height: 150px;
+            transition: opacity 1s ease;
         }
 
-        /* 水滴被吸入動畫 */
         .water-drop {
             position: absolute;
-            bottom: 5px;
-            width: 20px;
-            height: 20px;
+            bottom: 10px;
+            width: 16px;
+            height: 16px;
             background-color: #29b6f6;
             border-radius: 50% 50% 50% 0;
             transform: rotate(-45deg);
@@ -116,112 +96,57 @@
         }
 
         @keyframes absorb {
-            0% { transform: translateY(40px) scale(1) rotate(-45deg); opacity: 0; }
+            0% { transform: translateY(40px) scale(0.8) rotate(-45deg); opacity: 0; }
             50% { opacity: 1; }
-            100% { transform: translateY(-80px) scale(0.3) rotate(-45deg); opacity: 0; }
+            100% { transform: translateY(-60px) scale(0.2) rotate(-45deg); opacity: 0; }
         }
 
-        /* 水填滿中空樹木動畫 */
-        .water-fill-anim {
-            animation: fillWater 2.8s ease-in-out forwards;
-        }
-
-        @keyframes fillWater {
-            0% { transform: translateY(180px); }
-            100% { transform: translateY(0px); }
-        }
-
-        /* 大蘋果容器與 3 秒裂開動畫 */
-        .apple-wrapper {
+        .apple-container {
             position: absolute;
-            width: 240px;
-            height: 240px;
             display: flex;
             justify-content: center;
             align-items: center;
             opacity: 0;
-            transition: opacity 0.8s ease;
+            transition: opacity 1s ease;
         }
 
         .apple-half {
-            position: relative;
-            width: 100px;
-            height: 180px;
-            background-color: #ff3b30;
-            /* 3 秒分裂動畫 */
-            transition: transform 3s cubic-bezier(0.25, 1, 0.5, 1), opacity 3s ease;
-            box-shadow: inset -4px -4px 10px rgba(0,0,0,0.15);
+            width: 80px;
+            height: 140px;
+            background-color: #ff5252;
+            transition: transform 1s ease;
         }
 
-        .apple-left {
-            border-radius: 90px 0 20px 90px;
-        }
+        .apple-left { border-radius: 70px 0 0 70px; }
+        .apple-right { border-radius: 0 70px 70px 0; }
 
-        .apple-right {
-            border-radius: 0 90px 90px 20px;
-        }
-
-        /* 蒂頭 (Stem) */
-        .stem-left {
-            position: absolute;
-            top: -22px;
-            right: 0;
-            width: 6px;
-            height: 26px;
-            background-color: #5d4037;
-            border-radius: 3px 0 0 0;
-        }
-        .stem-right {
-            position: absolute;
-            top: -22px;
-            left: 0;
-            width: 6px;
-            height: 26px;
-            background-color: #5d4037;
-            border-radius: 0 3px 0 0;
-        }
-
-        /* 葉子 (Leaf) */
-        .leaf-right {
-            position: absolute;
-            top: -24px;
-            left: 6px;
-            width: 38px;
-            height: 22px;
-            background-color: #4caf50;
-            border-radius: 0 22px 0 22px;
-            transform: rotate(-10deg);
-            box-shadow: 1px 1px 4px rgba(0,0,0,0.2);
-        }
-
-        /* 裂開位移 */
-        .apple-wrapper.split .apple-left {
-            transform: translateX(-180px) rotate(-25deg);
+        .apple-container.split .apple-left {
+            transform: translateX(-120px) rotate(-15deg);
             opacity: 0;
         }
 
-        .apple-wrapper.split .apple-right {
-            transform: translateX(180px) rotate(25deg);
+        .apple-container.split .apple-right {
+            transform: translateX(120px) rotate(15deg);
             opacity: 0;
         }
 
         .title-text {
             position: absolute;
-            font-size: 3rem;
+            font-size: 2.8rem;
             font-weight: bold;
             color: #2e7d32;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.18);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.15);
             opacity: 0;
-            transform: scale(0.6);
-            transition: all 1.2s ease;
+            transform: scale(0.5);
+            transition: all 1s ease;
             white-space: nowrap;
         }
 
-        /* === 2. 主選單與年級選擇 === */
+        /* === 通用選單與標題 === */
         .main-title {
             position: absolute;
-            top: 15%;
-            font-size: 2.6rem;
+            top: 12%;
+            font-size: 2.4rem;
             font-weight: bold;
             color: #2e7d32;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
@@ -229,8 +154,11 @@
 
         .button-group {
             display: flex;
-            gap: 30px;
-            margin-top: 50px;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            margin-top: 40px;
         }
 
         .btn-card {
@@ -242,19 +170,11 @@
             font-weight: bold;
             color: #388e3c;
             box-shadow: 0 8px 15px rgba(0,0,0,0.08);
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.5s forwards;
+            text-align: center;
+            white-space: nowrap;
         }
 
-        .btn-card:nth-child(1) { animation-delay: 0.2s; }
-        .btn-card:nth-child(2) { animation-delay: 0.4s; }
-        .btn-card:nth-child(3) { animation-delay: 0.6s; }
-
-        @keyframes fadeInUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        /* 右下角齒輪後台按鈕 */
         .admin-gear {
             position: absolute;
             bottom: 25px;
@@ -271,30 +191,60 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
+        /* 返回上一頁按鈕 */
+        .btn-back {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            background: #ffffff;
+            border: 2px solid #a5d6a7;
+            padding: 8px 18px;
+            border-radius: 15px;
+            font-weight: bold;
+            color: #2e7d32;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
         /* === 3. 是非題測驗畫面 === */
         #quiz-screen {
             display: flex;
             flex-direction: column;
             width: 90vw;
             max-width: 900px;
-            height: 80vh;
-            gap: 20px;
+            height: 85vh;
+            gap: 15px;
+            justify-content: center;
         }
 
         .question-box {
-            flex: 1;
+            flex: 2;
             background: white;
             border: 5px solid #81c784;
             border-radius: 25px;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 30px;
-            font-size: 2.2rem;
-            font-weight: bold;
-            text-align: center;
+            padding: 20px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
             color: #1b5e20;
+            position: relative;
+        }
+
+        .question-text-content {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .question-img {
+            max-height: 140px;
+            max-width: 80%;
+            margin-top: 10px;
+            border-radius: 12px;
+            border: 2px solid #a5d6a7;
+            object-fit: contain;
         }
 
         .options-box {
@@ -310,97 +260,264 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 8rem;
+            font-size: 7rem;
             font-weight: bold;
             color: white;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            transition: all 0.5s ease;
-            opacity: 0.4;
+            transition: all 0.3s ease;
+            opacity: 0.6;
         }
 
         .option-circle { background-color: var(--tf-blue); }
         .option-cross { background-color: var(--tf-red); }
 
-        /* 正確答案亮燈效果 */
         .option-card.highlight {
             opacity: 1;
-            transform: scale(1.04);
-            box-shadow: 0 0 40px rgba(255, 235, 59, 1), 0 0 20px rgba(0,0,0,0.2);
+            transform: scale(1.03);
+            box-shadow: 0 0 35px rgba(255, 235, 59, 1), 0 0 15px rgba(0,0,0,0.2);
             border: 6px solid #fff59d;
         }
 
-        /* 下一題提示圖案 */
-        .next-prompt {
-            font-size: 2.5rem;
-            color: #2e7d32;
-            background: #e8f5e9;
-            padding: 10px 30px;
-            border-radius: 50px;
-            border: 3px solid #81c784;
-            animation: pulse 1s infinite alternate;
-        }
-
-        @keyframes pulse {
-            from { transform: scale(0.95); }
-            to { transform: scale(1.05); }
-        }
-
-        /* 本階段結束可點選按鈕 */
-        .end-stage-btn {
+        .quiz-next-btn {
             background: #ff9800;
             color: white;
-            padding: 15px 40px;
-            border-radius: 40px;
-            font-size: 2.2rem;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
-            border: 4px solid #fff;
+            padding: 12px 40px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            border-radius: 30px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            align-self: center;
         }
+
+        /* === 4. 後台管理系統樣式 === */
+        .admin-panel {
+            background: white;
+            width: 90vw;
+            max-width: 850px;
+            height: 80vh;
+            border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 4px solid #a5d6a7;
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+            gap: 15px;
+        }
+
+        .admin-header {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border-bottom: 2px solid #e8f5e9;
+            padding-bottom: 12px;
+        }
+
+        .admin-header h2 {
+            color: #2e7d32;
+            font-size: 1.8rem;
+        }
+
+        .bank-top-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 15px;
+            font-size: 1rem;
+            border: 2px solid #c8e6c9;
+            border-radius: 12px;
+            outline: none;
+        }
+        .search-input:focus { border-color: #4caf50; }
+
+        .action-btn {
+            padding: 10px 18px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-btn.primary { background-color: #4caf50; color: white; }
+        .action-btn.primary:hover { background-color: #388e3c; }
+        .action-btn.secondary { background-color: #2196f3; color: white; }
+        .action-btn.secondary:hover { background-color: #1976d2; }
+
+        .bank-list-container {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 5px;
+        }
+
+        .bank-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            background: #f9fbf9;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 12px;
+            gap: 15px;
+        }
+
+        .bank-item-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .bank-item-ans {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .ans-o { background-color: var(--tf-blue); }
+        .ans-x { background-color: var(--tf-red); }
+
+        .bank-item-text {
+            font-size: 1.1rem;
+            color: #333;
+            word-break: break-all;
+        }
+
+        .bank-item-thumb {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        .btn-delete:hover { opacity: 1; }
+
+        /* 新增題目表單 */
+        .admin-form-box {
+            background: white;
+            width: 90vw;
+            max-width: 650px;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 4px solid #a5d6a7;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .form-title {
+            color: #2e7d32;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #388e3c;
+            font-size: 1.1rem;
+        }
+
+        .form-group textarea, .form-group select, .form-group input[type="file"] {
+            padding: 10px 14px;
+            font-size: 1rem;
+            border: 2px solid #c8e6c9;
+            border-radius: 10px;
+            outline: none;
+        }
+        .form-group textarea:focus, .form-group select:focus { border-color: #4caf50; }
+
+        /* 右下角按鈕容器：左「保存」、右「取消」 */
+        .form-bottom-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .btn-save {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 26px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-save:hover { background-color: #388e3c; }
+
+        .btn-cancel {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 26px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-cancel:hover { background-color: #d32f2f; }
     </style>
 </head>
 <body>
 
-    <!-- 左上角返回上一頁箭頭 (除了主頁外的頁面顯示) -->
-    <div id="btn-back" class="btn-back-arrow clickable" onclick="goBack()">⬅</div>
+    <!-- 返回上一頁按鈕 -->
+    <div id="btn-back" class="btn-back clickable" style="display: none;" onclick="goBack()">🏠 返回上一頁</div>
 
     <!-- 1. 開場動畫畫面 -->
     <div id="loading-screen" class="screen active">
-        <!-- 中空蘋果樹與吸水動畫 -->
         <div class="tree-container" id="tree-box">
-            <svg id="tree-svg" viewBox="0 0 200 200">
-                <defs>
-                    <clipPath id="tree-clip">
-                        <path d="M 85 180 L 85 110 Q 40 105 40 70 Q 40 35 80 25 Q 100 5 120 25 Q 160 35 160 70 Q 160 105 115 110 L 115 180 Z" />
-                    </clipPath>
-                </defs>
-                <!-- 植物中空外框 -->
-                <path d="M 85 180 L 85 110 Q 40 105 40 70 Q 40 35 80 25 Q 100 5 120 25 Q 160 35 160 70 Q 160 105 115 110 L 115 180 Z" 
-                      fill="#ffffff" stroke="#2e7d32" stroke-width="7" />
-                <!-- 吸水填滿層 -->
-                <g clip-path="url(#tree-clip)">
-                    <rect id="water-fill" class="water-fill-anim" x="30" y="0" width="140" height="190" fill="#29b6f6" opacity="0.85" />
-                </g>
-                <!-- 植物外邊框蓋層 -->
-                <path d="M 85 180 L 85 110 Q 40 105 40 70 Q 40 35 80 25 Q 100 5 120 25 Q 160 35 160 70 Q 160 105 115 110 L 115 180 Z" 
-                      fill="none" stroke="#2e7d32" stroke-width="7" />
+            <svg id="tree-svg" viewBox="0 0 100 100">
+                <path d="M50 90 L50 60" stroke="#795548" stroke-width="8" stroke-linecap="round"/>
+                <circle cx="50" cy="45" r="25" fill="#4caf50"/>
+                <circle cx="35" cy="50" r="18" fill="#66bb6a"/>
+                <circle cx="65" cy="50" r="18" fill="#66bb6a"/>
             </svg>
             <div class="water-drop"></div>
         </div>
 
-        <!-- 大蘋果（含蒂頭、葉子與裂開動畫） -->
-        <div class="apple-wrapper" id="apple-box">
-            <div class="apple-half apple-left">
-                <div class="stem-left"></div>
-            </div>
-            <div class="apple-half apple-right">
-                <div class="stem-right"></div>
-                <div class="leaf-right"></div>
-            </div>
+        <div class="apple-container" id="apple-box">
+            <div class="apple-half apple-left"></div>
+            <div class="apple-half apple-right"></div>
         </div>
 
         <div class="title-text" id="main-title-text">校園植物辨認大賽</div>
     </div>
 
-    <!-- 2. 年級選擇選單 (主頁) -->
+    <!-- 2. 年級選擇主選單 -->
     <div id="main-menu" class="screen">
         <div class="main-title">校園植物辨認大賽</div>
         <div class="button-group">
@@ -408,12 +525,12 @@
             <div class="btn-card clickable" onclick="selectGrade('mid')">中年級</div>
             <div class="btn-card clickable" onclick="selectGrade('high')">高年級</div>
         </div>
-        <div class="admin-gear clickable" onclick="alert('進入後台管理系統')">
-            ⚙️ 後台
+        <div class="admin-gear clickable" onclick="openAdmin()">
+            ⚙️ 主頁後台
         </div>
     </div>
 
-    <!-- 3. 題型選擇選單 -->
+    <!-- 3. 學生答題：題型選擇選單 -->
     <div id="type-menu" class="screen">
         <div class="main-title" id="grade-title-display">年級組別</div>
         <div class="button-group">
@@ -425,10 +542,87 @@
 
     <!-- 4. 是非題測驗畫面 -->
     <div id="quiz-screen" class="screen">
-        <div class="question-box" id="question-text">準備開始...</div>
+        <div class="question-box">
+            <div class="question-text-content" id="question-text">準備開始...</div>
+            <img id="quiz-img-display" class="question-img" style="display: none;" alt="題目圖片" />
+        </div>
         <div class="options-box">
             <div class="option-card option-circle" id="opt-O">○</div>
             <div class="option-card option-cross" id="opt-X">×</div>
+        </div>
+        <div id="quiz-next-btn" class="clickable quiz-next-btn" onclick="handleQuizNext()">下一題</div>
+    </div>
+
+    <!-- 5. 後台：選擇年級 -->
+    <div id="admin-grade-menu" class="screen">
+        <div class="main-title">後台管理 - 請選擇年級</div>
+        <div class="button-group">
+            <div class="btn-card clickable" onclick="selectAdminGrade('low')">低年級</div>
+            <div class="btn-card clickable" onclick="selectAdminGrade('mid')">中年級</div>
+            <div class="btn-card clickable" onclick="selectAdminGrade('high')">高年級</div>
+        </div>
+    </div>
+
+    <!-- 6. 後台：選擇題庫類型 -->
+    <div id="admin-type-menu" class="screen">
+        <div class="main-title" id="admin-grade-title-display">後台管理</div>
+        <div class="button-group">
+            <div class="btn-card clickable" onclick="openAdminBank('TF')">是非題題庫</div>
+            <div class="btn-card clickable" onclick="alert('選擇題題庫建置中！')">選擇題題庫</div>
+            <div class="btn-card clickable" onclick="alert('問答題題庫建置中！')">問答題題庫</div>
+        </div>
+    </div>
+
+    <!-- 7. 後台：是非題題庫列表與管理 -->
+    <div id="admin-bank-screen" class="screen">
+        <div class="admin-panel">
+            <div class="admin-header">
+                <h2 id="bank-title-display">是非題題庫</h2>
+                <div class="bank-top-actions">
+                    <input type="text" id="bank-search-input" placeholder="🔍 搜尋題目內容..." oninput="renderAdminBankList()" class="search-input">
+                    <button class="action-btn primary clickable" onclick="navigateTo('admin-add-screen')">➕ 新增題目</button>
+                    <button class="action-btn secondary clickable" onclick="document.getElementById('batch-txt-input').click()">📁 批次匯入 (.txt)</button>
+                    <input type="file" id="batch-txt-input" accept=".txt" style="display:none;" onchange="handleBatchTxtUpload(event)">
+                </div>
+            </div>
+            <div class="bank-list-container" id="bank-list">
+                <!-- 動態呈現題庫題目 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. 後台：新增題目畫面 -->
+    <div id="admin-add-screen" class="screen">
+        <div class="admin-form-box">
+            <h2 class="form-title">新增是非題題目</h2>
+
+            <div class="form-group">
+                <label for="add-q-desc">題目敘述：</label>
+                <textarea id="add-q-desc" placeholder="請在此輸入題目敘述..." rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="add-q-ans">題目答案：</label>
+                <select id="add-q-ans">
+                    <option value="O">圈 (0 - 正確)</option>
+                    <option value="X">叉 (1 - 錯誤)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="add-q-img">題目圖片 (選填)：</label>
+                <input type="file" id="add-q-img" accept="image/*" onchange="handleImageUpload(event)">
+                <div id="img-preview-container" style="margin-top: 8px; display: none; align-items: center; gap: 10px;">
+                    <img id="img-preview" style="max-height: 100px; border-radius: 8px; border: 2px solid #a5d6a7;">
+                    <button type="button" onclick="clearUploadImage()" style="padding: 4px 10px; cursor: pointer;">刪除圖片</button>
+                </div>
+            </div>
+
+            <!-- 右下角按鈕由左至右分別為「保存」和「取消」 -->
+            <div class="form-bottom-actions">
+                <button type="button" class="btn-save clickable" onclick="saveNewQuestion()">保存</button>
+                <button type="button" class="btn-cancel clickable" onclick="resetAddForm()">取消</button>
+            </div>
         </div>
     </div>
 
@@ -461,135 +655,290 @@
             ]
         };
 
-        let currentGrade = '';
-        let quizSequenceActive = false;
+        const gradeNames = { low: '低年級', mid: '中年級', high: '高年級' };
 
-        // === 1. 開場動畫流程 ===
+        let currentGrade = 'low';
+        let adminGrade = 'low';
+
+        // 答題歷程狀態
+        let currentQuizQuestions = [];
+        let currentQuizIndex = 0;
+
+        // 上傳圖片暫存
+        let currentUploadedImgData = "";
+
+        // 頁面堆疊管理 (實現正確的返回上一頁)
+        let screenStack = [];
+
+        // === 頁面導航與返回機制 ===
+        function navigateTo(targetId) {
+            const activeScreen = document.querySelector('.screen.active');
+            if (activeScreen && activeScreen.id !== targetId) {
+                screenStack.push(activeScreen.id);
+            }
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(targetId).classList.add('active');
+            updateBackButton();
+        }
+
+        function goBack() {
+            if (screenStack.length > 0) {
+                const prevScreenId = screenStack.pop();
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(prevScreenId).classList.add('active');
+                updateBackButton();
+            }
+        }
+
+        function updateBackButton() {
+            const activeScreen = document.querySelector('.screen.active');
+            const backBtn = document.getElementById('btn-back');
+            if (!activeScreen || activeScreen.id === 'loading-screen' || activeScreen.id === 'main-menu') {
+                backBtn.style.display = 'none';
+            } else {
+                backBtn.style.display = 'block';
+            }
+        }
+
+        // === 開場動畫流程 ===
         window.addEventListener('DOMContentLoaded', () => {
             const treeBox = document.getElementById('tree-box');
             const appleBox = document.getElementById('apple-box');
             const titleText = document.getElementById('main-title-text');
 
-            // 樹木吸水填滿後切換成蘋果
             setTimeout(() => {
                 treeBox.style.opacity = '0';
                 setTimeout(() => {
                     treeBox.style.display = 'none';
                     appleBox.style.opacity = '1';
-                }, 800);
-            }, 3000);
+                }, 500);
+            }, 2500);
 
-            // 蘋果 3 秒裂開動畫與標題出現
             setTimeout(() => {
                 appleBox.classList.add('split');
                 titleText.style.opacity = '1';
                 titleText.style.transform = 'scale(1.2)';
-            }, 4200);
+            }, 4000);
 
-            // 切換至主選單頁面
             setTimeout(() => {
-                switchScreen('loading-screen', 'main-menu');
-            }, 7800);
+                navigateTo('main-menu');
+                screenStack = []; // 重置堆疊
+                updateBackButton();
+            }, 6000);
         });
 
-        // 畫面切換與返回箭頭控制
-        function switchScreen(fromId, toId) {
-            document.getElementById(fromId).classList.remove('active');
-            document.getElementById(toId).classList.add('active');
-            
-            const backBtn = document.getElementById('btn-back');
-            // 主頁與載入畫面隱藏返回箭頭，其餘頁面顯示
-            if (toId === 'main-menu' || toId === 'loading-screen') {
-                backBtn.style.display = 'none';
-            } else {
-                backBtn.style.display = 'flex';
-            }
-        }
-
-        // 返回上一頁功能
-        function goBack() {
-            quizSequenceActive = false;
-            const currentActive = document.querySelector('.screen.active').id;
-            
-            if (currentActive === 'quiz-screen') {
-                switchScreen('quiz-screen', 'type-menu');
-            } else if (currentActive === 'type-menu') {
-                switchScreen('type-menu', 'main-menu');
-            }
-        }
-
+        // === 選擇年級 (學生端) ===
         function selectGrade(grade) {
             currentGrade = grade;
-            const names = { low: '低年級', mid: '中年級', high: '高年級' };
-            document.getElementById('grade-title-display').innerText = `${names[grade]} - 請選擇題型`;
-            switchScreen('main-menu', 'type-menu');
+            document.getElementById('grade-title-display').innerText = `${gradeNames[grade]} - 請選擇題型`;
+            navigateTo('type-menu');
         }
 
+        // === 1. 是非題答題流程 ===
         function startQuiz(type) {
             if (type !== 'TF') return;
-            switchScreen('type-menu', 'quiz-screen');
 
             const pool = [...questionBank[currentGrade]];
             const shuffled = pool.sort(() => 0.5 - Math.random());
-            const selectedQuestions = shuffled.slice(0, 5);
+            currentQuizQuestions = shuffled.slice(0, 5);
+            currentQuizIndex = 0;
 
-            runTFQuiz(selectedQuestions);
+            navigateTo('quiz-screen');
+            renderQuizQuestion();
         }
 
-        // === 3 & 4. 是非題測驗流程 ===
-        async function runTFQuiz(questions) {
-            quizSequenceActive = true;
+        function renderQuizQuestion() {
+            const qData = currentQuizQuestions[currentQuizIndex];
             const qBox = document.getElementById('question-text');
+            const qImg = document.getElementById('quiz-img-display');
             const optO = document.getElementById('opt-O');
             const optX = document.getElementById('opt-X');
+            const nextBtn = document.getElementById('quiz-next-btn');
 
-            for (let i = 0; i < questions.length; i++) {
-                if (!quizSequenceActive) break;
+            qBox.innerText = `第 ${currentQuizIndex + 1} 題：${qData.q}`;
 
-                optO.classList.remove('highlight');
-                optX.classList.remove('highlight');
+            if (qData.img) {
+                qImg.src = qData.img;
+                qImg.style.display = 'block';
+            } else {
+                qImg.style.display = 'none';
+            }
 
-                // 1. 顯示「第 X 題」持續 3 秒
-                qBox.innerText = `第 ${i + 1} 題`;
-                await sleep(3000);
-                if (!quizSequenceActive) break;
+            // 高亮標示正確答案
+            optO.classList.remove('highlight');
+            optX.classList.remove('highlight');
+            if (qData.a === 'O') {
+                optO.classList.add('highlight');
+            } else {
+                optX.classList.add('highlight');
+            }
 
-                // 2. 顯示題目持續 5 秒
-                qBox.innerText = questions[i].q;
-                await sleep(5000);
-                if (!quizSequenceActive) break;
+            // 按鈕文字控制
+            if (currentQuizIndex < 4) {
+                nextBtn.innerText = "下一題";
+            } else {
+                nextBtn.innerText = "本階段結束";
+            }
+        }
 
-                // 3. 亮起正確答案那一邊，持續 3 秒
-                if (questions[i].a === 'O') {
-                    optO.classList.add('highlight');
-                } else {
-                    optX.classList.add('highlight');
+        function handleQuizNext() {
+            if (currentQuizIndex < 4) {
+                currentQuizIndex++;
+                renderQuizQuestion();
+            } else {
+                // 回到該年級段的題型選擇頁面
+                screenStack = ['main-menu'];
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById('type-menu').classList.add('active');
+                updateBackButton();
+            }
+        }
+
+        // === 2. 主頁後台功能流程 ===
+        function openAdmin() {
+            navigateTo('admin-grade-menu');
+        }
+
+        function selectAdminGrade(grade) {
+            adminGrade = grade;
+            document.getElementById('admin-grade-title-display').innerText = `${gradeNames[grade]} - 後台管理`;
+            navigateTo('admin-type-menu');
+        }
+
+        function openAdminBank(type) {
+            if (type === 'TF') {
+                document.getElementById('bank-title-display').innerText = `${gradeNames[adminGrade]} - 是非題題庫`;
+                renderAdminBankList();
+                navigateTo('admin-bank-screen');
+            }
+        }
+
+        // === 3. 題庫列表與搜尋功能 ===
+        function renderAdminBankList() {
+            const bankList = document.getElementById('bank-list');
+            const filterText = document.getElementById('bank-search-input').value.trim().toLowerCase();
+            const list = questionBank[adminGrade] || [];
+
+            bankList.innerHTML = '';
+
+            list.forEach((item, index) => {
+                if (filterText && !item.q.toLowerCase().includes(filterText)) {
+                    return;
                 }
-                await sleep(3000);
-                if (!quizSequenceActive) break;
 
-                // 4. 出現「下一題」圖案字樣，持續 3 秒
-                optO.classList.remove('highlight');
-                optX.classList.remove('highlight');
-                qBox.innerHTML = `<div class="next-prompt">下一題 ➔</div>`;
-                await sleep(3000);
-            }
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'bank-item';
+                itemDiv.innerHTML = `
+                    <div class="bank-item-info">
+                        <span class="bank-item-ans ${item.a === 'O' ? 'ans-o' : 'ans-x'}">${item.a === 'O' ? '○' : '×'}</span>
+                        <span class="bank-item-text">${item.q}</span>
+                    </div>
+                    ${item.img ? `<img src="${item.img}" class="bank-item-thumb" alt="圖片">` : ''}
+                    <button class="btn-delete" title="刪除題目" onclick="deleteQuestion(${index})">🗑️</button>
+                `;
+                bankList.appendChild(itemDiv);
+            });
 
-            // 答完 5 題後出現「本階段結束」可點選字樣
-            if (quizSequenceActive) {
-                optO.classList.remove('highlight');
-                optX.classList.remove('highlight');
-                qBox.innerHTML = `<div class="end-stage-btn clickable" onclick="goTypeMenu()">本階段結束 (點擊返回)</div>`;
+            if (bankList.children.length === 0) {
+                bankList.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">無匹配的題目或題庫為空</div>';
             }
         }
 
-        function goTypeMenu() {
-            quizSequenceActive = false;
-            switchScreen('quiz-screen', 'type-menu');
+        function deleteQuestion(index) {
+            if (confirm("確定要刪除這道題目嗎？")) {
+                questionBank[adminGrade].splice(index, 1);
+                renderAdminBankList();
+            }
         }
 
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
+        // === 4. 手動新增題目功能 ===
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentUploadedImgData = e.target.result;
+                    document.getElementById('img-preview').src = currentUploadedImgData;
+                    document.getElementById('img-preview-container').style.display = 'flex';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearUploadImage() {
+            currentUploadedImgData = "";
+            document.getElementById('add-q-img').value = "";
+            document.getElementById('img-preview').src = "";
+            document.getElementById('img-preview-container').style.display = 'none';
+        }
+
+        function saveNewQuestion() {
+            const qDesc = document.getElementById('add-q-desc').value.trim();
+            const qAns = document.getElementById('add-q-ans').value;
+
+            if (!qDesc) {
+                alert("請輸入題目敘述！");
+                return;
+            }
+
+            const newQuestion = {
+                q: qDesc,
+                a: qAns
+            };
+            if (currentUploadedImgData) {
+                newQuestion.img = currentUploadedImgData;
+            }
+
+            questionBank[adminGrade].push(newQuestion);
+            alert("題目已成功保存到題庫！可繼續輸入新題目。");
+            resetAddForm();
+        }
+
+        function resetAddForm() {
+            document.getElementById('add-q-desc').value = "";
+            document.getElementById('add-q-ans').value = "O";
+            clearUploadImage();
+        }
+
+        // === 5. 文字檔 (txt) 批次匯入題目功能 ===
+        function handleBatchTxtUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const lines = content.split(/\r?\n/);
+                let count = 0;
+
+                lines.forEach(line => {
+                    const trimmed = line.trim();
+                    if (!trimmed) return;
+
+                    // 解析格式: "題目文字敘述",0 或 "題目文字敘述",1
+                    const match = trimmed.match(/^\s*["“]([^"”]+)["”]\s*[,，]\s*([01])\s*$/);
+                    if (match) {
+                        const qText = match[1];
+                        const ansCode = match[2];
+                        const ans = (ansCode === "0") ? "O" : "X";
+
+                        questionBank[adminGrade].push({
+                            q: qText,
+                            a: ans
+                        });
+                        count++;
+                    }
+                });
+
+                if (count > 0) {
+                    alert(`成功批次匯入 ${count} 道是非題！`);
+                    renderAdminBankList();
+                } else {
+                    alert("未能成功讀取題目，請確認TXT格式是否為：\n\"題目敘述\",0\n\"題目敘述\",1");
+                }
+                event.target.value = ''; // 清空檔案選擇器
+            };
+            reader.readAsText(file, 'UTF-8');
         }
     </script>
 </body>
