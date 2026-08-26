@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校園植物辨認大賽</title>
+    <style>
+        /* === 全局風格與變數定義 === */
+        :root {
+            --bg-color: #f0f9eb;
+            --primary-green: #4caf50;
+            --accent-yellow: #fff59d;
+            --glow-color: rgba(255, 235, 59, 0.8);
+            --tf-blue: #2196f3;
+            --tf-red: #f44336;
+            --text-color: #2c3e50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "MicroSoft JhengHei", "PingFang TC", sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e8f5e9 0%, #e0f7fa 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 可點選圖案連結通用特效：滑過時微微亮起 */
+        .clickable {
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .clickable:hover {
+            transform: scale(1.06);
+            filter: drop-shadow(0 0 12px var(--glow-color)) brightness(1.1);
+        }
+
+        /* === 畫面切換容器 === */
+        .screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* === 1. 開場動畫畫面 (Requirement 2) === */
+        #loading-screen {
+            background-color: #e8f5e9;
+        }
+
+        .tree-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 樹木與水滴動畫 */
+        #tree-svg {
+            width: 150px;
+            height: 150px;
+            transition: opacity 1s ease;
+        }
+
+        .water-drop {
+            position: absolute;
+            bottom: 10px;
+            width: 16px;
+            height: 16px;
+            background-color: #29b6f6;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            animation: absorb 1.5s infinite ease-in;
+        }
+
+        @keyframes absorb {
+            0% { transform: translateY(40px) scale(0.8) rotate(-45deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-60px) scale(0.2) rotate(-45deg); opacity: 0; }
+        }
+
+        /* 大蘋果裂開動畫 */
+        .apple-container {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .apple-half {
+            width: 80px;
+            height: 140px;
+            background-color: #ff5252;
+            transition: transform 1s ease;
+        }
+
+        .apple-left {
+            border-radius: 70px 0 0 70px;
+        }
+
+        .apple-right {
+            border-radius: 0 70px 70px 0;
+        }
+
+        .apple-container.split .apple-left {
+            transform: translateX(-120px) rotate(-15deg);
+            opacity: 0;
+        }
+
+        .apple-container.split .apple-right {
+            transform: translateX(120px) rotate(15deg);
+            opacity: 0;
+        }
+
+        .title-text {
+            position: absolute;
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: #2e7d32;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.15);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 1s ease;
+            white-space: nowrap;
+        }
+
+        /* === 2. 主選單與年級選擇 (Requirement 3 & 4) === */
+        .main-title {
+            position: absolute;
+            top: 15%;
+            font-size: 2.4rem;
+            font-weight: bold;
+            color: #2e7d32;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.5s ease;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .btn-card {
+            background: white;
+            border: 4px solid #a5d6a7;
+            border-radius: 20px;
+            padding: 25px 40px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #388e3c;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s forwards;
+        }
+
+        .btn-card:nth-child(1) { animation-delay: 0.2s; }
+        .btn-card:nth-child(2) { animation-delay: 0.4s; }
+        .btn-card:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 右下角齒輪後台 */
+        .admin-gear {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #666;
+            background: white;
+            padding: 10px 18px;
+            border-radius: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* === 3. 是非題測驗畫面 (Requirement 6) === */
+        #quiz-screen {
+            display: flex;
+            flex-direction: column;
+            width: 90vw;
+            max-width: 900px;
+            height: 80vh;
+            gap: 20px;
+        }
+
+        .question-box {
+            flex: 1;
+            background: white;
+            border: 5px solid #81c784;
+            border-radius: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            font-size: 2.2rem;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            color: #1b5e20;
+        }
+
+        .options-box {
+            flex: 2;
+            display: flex;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .option-card {
+            flex: 1;
+            border-radius: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 8rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: all 0.5s ease;
+            opacity: 0.6;
+        }
+
+        .option-circle { background-color: var(--tf-blue); }
+        .option-cross { background-color: var(--tf-red); }
+
+        /* 正確答案亮燈效果 */
+        .option-card.highlight {
+            opacity: 1;
+            transform: scale(1.03);
+            box-shadow: 0 0 35px rgba(255, 235, 59, 1), 0 0 15px rgba(0,0,0,0.2);
+            border: 6px solid #fff59d;
+        }
+
+        /* 回首頁按鈕 */
+        .btn-back {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            background: #ffffff;
+            border: 2px solid #a5d6a7;
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 返回上一頁/主選單按鈕 -->
+    <div id="btn-back" class="btn-back clickable" style="display: none;" onclick="goHome()">🏠 返回主頁</div>
+
+    <!-- 1. 開場動畫畫面 -->
+    <div id="loading-screen" class="screen active">
+        <div class="tree-container" id="tree-box">
+            <svg id="tree-svg" viewBox="0 0 100 100">
+                <path d="M50 90 L50 60" stroke="#795548" stroke-width="8" stroke-linecap="round"/>
+                <circle cx="50" cy="45" r="25" fill="#4caf50"/>
+                <circle cx="35" cy="50" r="18" fill="#66bb6a"/>
+                <circle cx="65" cy="50" r="18" fill="#66bb6a"/>
+            </svg>
+            <div class="water-drop"></div>
+        </div>
+
+        <div class="apple-container" id="apple-box">
+            <div class="apple-half apple-left"></div>
+            <div class="apple-half apple-right"></div>
+        </div>
+
+        <div class="title-text" id="main-title-text">校園植物辨認大賽</div>
+    </div>
+
+    <!-- 2. 年級選擇選單 (Requirement 3) -->
+    <div id="main-menu" class="screen">
+        <div class="main-title">校園植物辨認大賽</div>
+        <div class="button-group">
+            <div class="btn-card clickable" onclick="selectGrade('low')">低年級</div>
+            <div class="btn-card clickable" onclick="selectGrade('mid')">中年級</div>
+            <div class="btn-card clickable" onclick="selectGrade('high')">高年級</div>
+        </div>
+        <div class="admin-gear clickable" onclick="alert('進入後台管理系統')">
+            ⚙️ 後台
+        </div>
+    </div>
+
+    <!-- 3. 題型選擇選單 (Requirement 4) -->
+    <div id="type-menu" class="screen">
+        <div class="main-title" id="grade-title-display">年級組別</div>
+        <div class="button-group">
+            <div class="btn-card clickable" onclick="startQuiz('TF')">是非題</div>
+            <div class="btn-card clickable" onclick="alert('選擇題庫建置中！')">選擇題</div>
+            <div class="btn-card clickable" onclick="alert('問答題庫建置中！')">問答題</div>
+        </div>
+    </div>
+
+    <!-- 4. 是非題測驗畫面 (Requirement 6) -->
+    <div id="quiz-screen" class="screen">
+        <div class="question-box" id="question-text">準備開始...</div>
+        <div class="options-box">
+            <div class="option-card option-circle" id="opt-O">○</div>
+            <div class="option-card option-cross" id="opt-X">×</div>
+        </div>
+    </div>
+
+    <script>
+        // === 題庫資料 (Requirement 5: 可自行修改擴充) ===
+        const questionBank = {
+            low: [
+                { q: "榕樹的樹幹上常常會有垂下來的氣根。", a: "O" },
+                { q: "杜鵑花只有白色的，沒有其他顏色。", a: "X" },
+                { q: "植物的葉子大多是綠色的。", a: "O" },
+                { q: "向日葵的花朵會朝向太陽的方向。", a: "O" },
+                { q: "植物不需要澆水也可以活得很好。", a: "X" },
+                { q: "校園裡的草皮也是由植物組成的。", a: "O" }
+            ],
+            mid: [
+                { q: "植物進行光合作用主要需要太陽光、水和二氧化碳。", a: "O" },
+                { q: "所有植物的花朵都有漂亮的花瓣來吸引昆蟲。", a: "X" },
+                { q: "蕨類植物是不會開花結實的。", a: "O" },
+                { q: "大王椰子的樹幹會越長越粗，跟一般樹木一樣。", a: "X" },
+                { q: "楓樹的葉子在秋天變紅是因為葉綠素減少。", a: "O" },
+                { q: "植物的根部只有吸收水分的作用，不能固定植物。", a: "X" }
+            ],
+            high: [
+                { q: "氣孔是植物進行氣體交換與蒸散作用的主要構造。", a: "O" },
+                { q: "裸子植物的種子外面有果實包覆著。", a: "X" },
+                { q: "校園常見的樟樹，撕碎葉子揉搓會有特殊的香氣。", a: "O" },
+                { q: "植物的木質部主要負責運輸光合作用產生的養分。", a: "X" },
+                { q: "植物的蒸散作用有助於拉動水分向上運輸。", a: "O" },
+                { q: "竹子是屬於草本植物而非木本植物。", a: "O" }
+            ]
+        };
+
+        let currentGrade = '';
+        let quizSequenceActive = false;
+
+        // === 1. 開場動畫流程控制 (Requirement 2 & 3) ===
+        window.addEventListener('DOMContentLoaded', () => {
+            const treeBox = document.getElementById('tree-box');
+            const appleBox = document.getElementById('apple-box');
+            const titleText = document.getElementById('main-title-text');
+
+            // 步驟 A: 吸收水分 2.5 秒後，樹淡出，大蘋果淡入
+            setTimeout(() => {
+                treeBox.style.opacity = '0';
+                setTimeout(() => {
+                    treeBox.style.display = 'none';
+                    appleBox.style.opacity = '1';
+                }, 500);
+            }, 2500);
+
+            // 步驟 B: 大蘋果裂開，出現標題大字
+            setTimeout(() => {
+                appleBox.classList.add('split');
+                titleText.style.opacity = '1';
+                titleText.style.transform = 'scale(1.2)';
+            }, 4000);
+
+            // 步驟 C: 進入主頁面選單 (縮小標題，淡出年級選項)
+            setTimeout(() => {
+                switchScreen('loading-screen', 'main-menu');
+            }, 6000);
+        });
+
+        // 通用畫面切換函式
+        function switchScreen(fromId, toId) {
+            document.getElementById(fromId).classList.remove('active');
+            document.getElementById(toId).classList.add('active');
+            
+            // 顯示/隱藏返回按鈕
+            const backBtn = document.getElementById('btn-back');
+            if (toId === 'main-menu' || toId === 'loading-screen') {
+                backBtn.style.display = 'none';
+            } else {
+                backBtn.style.display = 'block';
+            }
+        }
+
+        // 回主頁
+        function goHome() {
+            quizSequenceActive = false; // 中斷測驗流程
+            switchScreen('type-menu', 'main-menu');
+            switchScreen('quiz-screen', 'main-menu');
+        }
+
+        // === 2. 年級與題型選擇 (Requirement 4) ===
+        function selectGrade(grade) {
+            currentGrade = grade;
+            const names = { low: '低年級', mid: '中年級', high: '高年級' };
+            document.getElementById('grade-title-display').innerText = `${names[grade]} - 請選擇題型`;
+            switchScreen('main-menu', 'type-menu');
+        }
+
+        // === 3. 是非題測驗流程 (Requirement 5 & 6) ===
+        function startQuiz(type) {
+            if (type !== 'TF') return;
+            switchScreen('type-menu', 'quiz-screen');
+
+            // 隨機抽 5 題
+            const pool = [...questionBank[currentGrade]];
+            const shuffled = pool.sort(() => 0.5 - Math.random());
+            const selectedQuestions = shuffled.slice(0, 5);
+
+            runTFQuiz(selectedQuestions);
+        }
+
+        // 非同步控制「第X題(3s) -> 顯示題目(5s) -> 亮答案」循環
+        async function runTFQuiz(questions) {
+            quizSequenceActive = true;
+            const qBox = document.getElementById('question-text');
+            const optO = document.getElementById('opt-O');
+            const optX = document.getElementById('opt-X');
+
+            for (let i = 0; i < questions.length; i++) {
+                if (!quizSequenceActive) break;
+
+                // 重置狀態
+                optO.classList.remove('highlight');
+                optX.classList.remove('highlight');
+
+                // 1. 顯示「第 X 題」持續 3 秒
+                qBox.innerText = `第 ${i + 1} 題`;
+                await sleep(3000);
+                if (!quizSequenceActive) break;
+
+                // 2. 顯示題目內容持續 5 秒
+                qBox.innerText = questions[i].q;
+                await sleep(5000);
+                if (!quizSequenceActive) break;
+
+                // 3. 亮起正確答案那一邊 (持續 2.5 秒供學生確認)
+                if (questions[i].a === 'O') {
+                    optO.classList.add('highlight');
+                } else {
+                    optX.classList.add('highlight');
+                }
+                await sleep(2500);
+            }
+
+            if (quizSequenceActive) {
+                qBox.innerText = "測驗結束！大師誕生！";
+                optO.classList.remove('highlight');
+                optX.classList.remove('highlight');
+            }
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
