@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>校園植物辨認大賽</title>
+    <title>校園植物挑戰賽</title>
     <style>
         /* === 全局風格與變數定義 === */
         :root {
@@ -13,6 +13,11 @@
             --glow-color: rgba(255, 235, 59, 0.8);
             --tf-blue: #2196f3;
             --tf-red: #f44336;
+            --mc-a: #2196f3;
+            --mc-b: #4caf50;
+            --mc-c: #ff9800;
+            --mc-d: #9c27b0;
+            --qa-color: #009688;
             --text-color: #2c3e50;
         }
 
@@ -32,17 +37,70 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            position: relative;
         }
 
-        /* 可點選圖案連結通用特效：滑過時微微亮起 */
+        /* 通用可點擊元素 */
         .clickable {
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         .clickable:hover {
-            transform: scale(1.05);
+            transform: scale(1.03);
             filter: drop-shadow(0 0 12px var(--glow-color)) brightness(1.05);
+        }
+
+        /* === 左上角返回箭頭 === */
+        .btn-back-arrow {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 52px;
+            height: 52px;
+            background: #ffffff;
+            border: 3px solid #81c784;
+            border-radius: 50%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            color: #2e7d32;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 999;
+        }
+
+        /* === 右上角背景音樂控制按鈕 === */
+        .btn-music-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 52px;
+            height: 52px;
+            background: #ffffff;
+            border: 3px solid #81c784;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.6rem;
+            color: #2e7d32;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 999;
+        }
+
+        .btn-music-toggle.muted {
+            background: #ffebee;
+            border-color: #ef5350;
+            color: #c62828;
+        }
+
+        .btn-music-toggle.playing {
+            animation: musicPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes musicPulse {
+            0% { transform: scale(1); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+            50% { transform: scale(1.08); box-shadow: 0 0 15px rgba(76, 175, 80, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         }
 
         /* === 畫面切換容器 === */
@@ -71,17 +129,27 @@
 
         .tree-container {
             position: relative;
-            width: 200px;
-            height: 200px;
+            width: 220px;
+            height: 220px;
             display: flex;
             justify-content: center;
             align-items: center;
+            transition: opacity 1s ease;
         }
 
         #tree-svg {
-            width: 150px;
-            height: 150px;
-            transition: opacity 1s ease;
+            width: 180px;
+            height: 180px;
+        }
+
+        .bloom-item {
+            opacity: 0;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            transform-origin: center;
+        }
+
+        .bloom-item.active {
+            opacity: 1;
         }
 
         .water-drop {
@@ -101,48 +169,19 @@
             100% { transform: translateY(-60px) scale(0.2) rotate(-45deg); opacity: 0; }
         }
 
-        .apple-container {
-            position: absolute;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 1s ease;
-        }
-
-        .apple-half {
-            width: 80px;
-            height: 140px;
-            background-color: #ff5252;
-            transition: transform 1s ease;
-        }
-
-        .apple-left { border-radius: 70px 0 0 70px; }
-        .apple-right { border-radius: 0 70px 70px 0; }
-
-        .apple-container.split .apple-left {
-            transform: translateX(-120px) rotate(-15deg);
-            opacity: 0;
-        }
-
-        .apple-container.split .apple-right {
-            transform: translateX(120px) rotate(15deg);
-            opacity: 0;
-        }
-
         .title-text {
             position: absolute;
-            font-size: 2.8rem;
+            font-size: 3.2rem;
             font-weight: bold;
             color: #2e7d32;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.15);
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.15);
             opacity: 0;
             transform: scale(0.5);
             transition: all 1s ease;
             white-space: nowrap;
         }
 
-        /* === 通用選單與標題 === */
+        /* === 2. 年級與選單通用 === */
         .main-title {
             position: absolute;
             top: 12%;
@@ -150,31 +189,43 @@
             font-weight: bold;
             color: #2e7d32;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            padding: 0 15px;
         }
 
         .button-group {
             display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
             gap: 25px;
-            margin-top: 40px;
+            margin-top: 50px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90%;
         }
 
         .btn-card {
             background: white;
             border: 4px solid #a5d6a7;
             border-radius: 20px;
-            padding: 25px 40px;
+            padding: 22px 36px;
             font-size: 1.8rem;
             font-weight: bold;
             color: #388e3c;
             box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s forwards;
             text-align: center;
-            white-space: nowrap;
+            min-width: 180px;
         }
 
-        /* 右下角齒輪後台按鈕 */
+        .btn-card:nth-child(1) { animation-delay: 0.1s; }
+        .btn-card:nth-child(2) { animation-delay: 0.2s; }
+        .btn-card:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .admin-gear {
             position: absolute;
             bottom: 25px;
@@ -191,34 +242,20 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        /* 返回上一頁按鈕 */
-        .btn-back {
-            position: absolute;
-            top: 25px;
-            left: 25px;
-            background: #ffffff;
-            border: 2px solid #a5d6a7;
-            padding: 8px 18px;
-            border-radius: 15px;
-            font-weight: bold;
-            color: #2e7d32;
-            z-index: 1000;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        }
-
-        /* === 3. 是非題測驗畫面 === */
+        /* === 3. 測驗通用畫面 (是非題 / 選擇題 / 問答題) === */
         #quiz-screen {
             display: flex;
             flex-direction: column;
-            width: 90vw;
-            max-width: 900px;
-            height: 85vh;
+            width: 92vw;
+            max-width: 950px;
+            height: 82vh;
             gap: 15px;
-            justify-content: center;
+            align-items: center;
         }
 
         .question-box {
-            flex: 2;
+            flex: 1;
+            width: 100%;
             background: white;
             border: 5px solid #81c784;
             border-radius: 25px;
@@ -226,276 +263,415 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            color: #1b5e20;
-            position: relative;
-        }
-
-        .question-text-content {
+            padding: 20px 30px;
             font-size: 2rem;
             font-weight: bold;
             text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            color: #1b5e20;
+            overflow-y: auto;
         }
 
-        .question-img {
-            max-height: 140px;
-            max-width: 80%;
-            margin-top: 10px;
-            border-radius: 12px;
-            border: 2px solid #a5d6a7;
+        .quiz-q-img {
+            max-width: 320px;
+            max-height: 180px;
+            width: auto;
+            height: auto;
             object-fit: contain;
+            margin-top: 12px;
+            border-radius: 12px;
+            border: 3px solid #a5d6a7;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
         .options-box {
             flex: 2;
             display: flex;
-            gap: 20px;
+            gap: 15px;
             width: 100%;
+            justify-content: center;
+            align-items: center;
         }
 
         .option-card {
             flex: 1;
+            height: 100%;
+            max-height: 220px;
             border-radius: 25px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 7rem;
+            font-size: 6rem;
             font-weight: bold;
             color: white;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            opacity: 0.6;
+            transition: all 0.5s ease;
+            opacity: 0.5;
         }
 
         .option-circle { background-color: var(--tf-blue); }
         .option-cross { background-color: var(--tf-red); }
 
+        .option-mc-a { background-color: var(--mc-a); }
+        .option-mc-b { background-color: var(--mc-b); }
+        .option-mc-c { background-color: var(--mc-c); }
+        .option-mc-d { background-color: var(--mc-d); }
+
         .option-card.highlight {
             opacity: 1;
-            transform: scale(1.03);
+            transform: scale(1.05);
             box-shadow: 0 0 35px rgba(255, 235, 59, 1), 0 0 15px rgba(0,0,0,0.2);
             border: 6px solid #fff59d;
         }
 
-        .quiz-next-btn {
-            background: #ff9800;
-            color: white;
-            padding: 12px 40px;
-            font-size: 1.6rem;
-            font-weight: bold;
-            border-radius: 30px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-            align-self: center;
-        }
-
-        /* === 4. 後台管理系統樣式 === */
-        .admin-panel {
+        .qa-answer-card {
+            width: 100%;
             background: white;
-            width: 90vw;
-            max-width: 850px;
-            height: 80vh;
-            border-radius: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border: 4px solid #a5d6a7;
+            border: 4px solid #009688;
+            border-radius: 20px;
+            padding: 25px;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.6s ease;
+        }
+
+        .qa-answer-card.show {
+            opacity: 1;
+            transform: scale(1);
+            border-color: #4caf50;
+            box-shadow: 0 0 30px rgba(76, 175, 80, 0.4);
+        }
+
+        .qa-label {
+            font-size: 1.3rem;
+            color: #00796b;
+            font-weight: bold;
+        }
+
+        .qa-text-display {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2e7d32;
+            word-break: break-all;
+        }
+
+        #action-btn-area {
+            min-height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .next-prompt-btn {
+            font-size: 1.8rem;
+            color: #2e7d32;
+            background: #ffffff;
+            padding: 12px 45px;
+            border-radius: 50px;
+            border: 4px solid #81c784;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+            animation: pulse 1s infinite alternate;
+        }
+
+        .end-stage-btn {
+            background: #ff9800;
+            color: white;
+            padding: 12px 45px;
+            border-radius: 40px;
+            font-size: 1.8rem;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+            border: 4px solid #fff;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(0.96); }
+            to { transform: scale(1.04); }
+        }
+
+        /* === 4. 後台管理 UI 風格 === */
+        .admin-box {
+            width: 92vw;
+            max-width: 950px;
+            height: 82vh;
+            background: white;
+            border: 5px solid #81c784;
+            border-radius: 25px;
             padding: 25px;
+            display: flex;
+            flex-direction: column;
             gap: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
 
         .admin-header {
             display: flex;
-            flex-direction: column;
-            gap: 12px;
-            border-bottom: 2px solid #e8f5e9;
-            padding-bottom: 12px;
-        }
-
-        .admin-header h2 {
-            color: #2e7d32;
-            font-size: 1.8rem;
-        }
-
-        .bank-top-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
+            justify-content: space-between;
             align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
         }
 
         .search-input {
-            flex: 1;
-            min-width: 200px;
-            padding: 10px 15px;
-            font-size: 1rem;
-            border: 2px solid #c8e6c9;
+            padding: 10px 16px;
+            border: 2px solid #a5d6a7;
             border-radius: 12px;
+            font-size: 1rem;
             outline: none;
+            flex: 1;
+            min-width: 180px;
         }
-        .search-input:focus { border-color: #4caf50; }
 
-        .action-btn {
+        .admin-btn {
+            background: #388e3c;
+            color: white;
+            border: none;
             padding: 10px 18px;
+            border-radius: 12px;
             font-size: 1rem;
             font-weight: bold;
-            border-radius: 12px;
-            border: none;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
-        .action-btn.primary { background-color: #4caf50; color: white; }
-        .action-btn.primary:hover { background-color: #388e3c; }
-        .action-btn.secondary { background-color: #2196f3; color: white; }
-        .action-btn.secondary:hover { background-color: #1976d2; }
+        .admin-btn:hover { background: #2e7d32; }
 
-        .bank-list-container {
+        .admin-btn-blue { background: #2196f3; }
+        .admin-btn-blue:hover { background: #1976d2; }
+
+        .admin-btn-red { background: #e53935; }
+        .admin-btn-red:hover { background: #c62828; }
+
+        .bank-list {
             flex: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             padding-right: 5px;
         }
 
         .bank-item {
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 14px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 18px;
-            background: #f9fbf9;
-            border: 1.5px solid #e0e0e0;
-            border-radius: 12px;
             gap: 15px;
         }
-
-        .bank-item-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex: 1;
+        .bank-item:hover {
+            background: #f1f8e9;
+            border-color: #a5d6a7;
         }
-
-        .bank-item-ans {
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            color: white;
-            font-weight: bold;
-            font-size: 1.2rem;
-            flex-shrink: 0;
-        }
-        .ans-o { background-color: var(--tf-blue); }
-        .ans-x { background-color: var(--tf-red); }
 
         .bank-item-text {
             font-size: 1.1rem;
-            color: #333;
+            font-weight: bold;
+            color: #2c3e50;
+            flex: 1;
+            display: flex;
+            align-items: center;
             word-break: break-all;
         }
 
-        .bank-item-thumb {
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 1px solid #ccc;
+        .badge-ans {
+            min-width: 38px;
+            height: 38px;
+            padding: 0 10px;
+            border-radius: 19px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            text-align: center;
         }
+        .badge-O { background-color: var(--tf-blue); }
+        .badge-X { background-color: var(--tf-red); }
+        .badge-A { background-color: var(--mc-a); }
+        .badge-B { background-color: var(--mc-b); }
+        .badge-C { background-color: var(--mc-c); }
+        .badge-D { background-color: var(--mc-d); }
+        .badge-QA { background-color: var(--qa-color); }
 
-        .btn-delete {
-            background: transparent;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            opacity: 0.6;
-            transition: opacity 0.2s;
-        }
-        .btn-delete:hover { opacity: 1; }
-
-        /* 新增題目表單 */
-        .admin-form-box {
-            background: white;
-            width: 90vw;
-            max-width: 650px;
-            padding: 30px;
-            border-radius: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border: 4px solid #a5d6a7;
+        .form-container {
             display: flex;
             flex-direction: column;
-            gap: 18px;
-        }
-
-        .form-title {
-            color: #2e7d32;
-            font-size: 1.8rem;
-            text-align: center;
+            gap: 15px;
+            flex: 1;
+            text-align: left;
+            position: relative;
+            overflow-y: auto;
+            padding-right: 5px;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            text-align: left;
+            gap: 6px;
         }
 
         .form-group label {
             font-weight: bold;
-            color: #388e3c;
             font-size: 1.1rem;
+            color: #2e7d32;
         }
 
-        .form-group textarea, .form-group select, .form-group input[type="file"] {
-            padding: 10px 14px;
-            font-size: 1rem;
-            border: 2px solid #c8e6c9;
+        .form-select, .form-input, .form-textarea {
+            padding: 10px;
+            border: 2px solid #a5d6a7;
             border-radius: 10px;
+            font-size: 1rem;
             outline: none;
         }
-        .form-group textarea:focus, .form-group select:focus { border-color: #4caf50; }
 
-        /* 右下角按鈕容器：左「保存」、右「取消」 */
-        .form-bottom-actions {
+        .img-preview-box {
+            max-width: 200px;
+            max-height: 140px;
+            width: auto;
+            height: auto;
+            margin-top: 8px;
+            border-radius: 8px;
+            display: none;
+            object-fit: contain;
+            border: 2px solid #a5d6a7;
+        }
+
+        .form-actions-bottom {
+            margin-top: auto;
+            padding-top: 15px;
             display: flex;
             justify-content: flex-end;
             gap: 15px;
-            margin-top: 15px;
         }
 
         .btn-save {
             background-color: #4caf50;
             color: white;
+            padding: 10px 25px;
             border: none;
-            padding: 10px 26px;
+            border-radius: 10px;
             font-size: 1.1rem;
             font-weight: bold;
-            border-radius: 10px;
             cursor: pointer;
-            transition: background 0.2s;
         }
-        .btn-save:hover { background-color: #388e3c; }
+
+        .btn-delete-single {
+            background-color: #e53935;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+        }
 
         .btn-cancel {
-            background-color: #f44336;
+            background-color: #757575;
             color: white;
+            padding: 10px 25px;
             border: none;
-            padding: 10px 26px;
+            border-radius: 10px;
             font-size: 1.1rem;
             font-weight: bold;
-            border-radius: 10px;
             cursor: pointer;
-            transition: background 0.2s;
         }
-        .btn-cancel:hover { background-color: #d32f2f; }
+
+        /* === 自訂對話框 (替代 alert/confirm) === */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: white;
+            border: 4px solid #81c784;
+            border-radius: 20px;
+            padding: 25px 30px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .modal-msg {
+            font-size: 1.1rem;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .modal-btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            padding: 8px 24px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+
+        .modal-btn-confirm { background: #4caf50; color: white; }
+        .modal-btn-cancel { background: #9e9e9e; color: white; }
     </style>
 </head>
 <body>
 
-    <!-- 返回上一頁按鈕 -->
-    <div id="btn-back" class="btn-back clickable" style="display: none;" onclick="goBack()">🏠 返回上一頁</div>
+    <!-- 全局左上角返回箭頭 -->
+    <div id="btn-back" class="btn-back-arrow clickable" onclick="goBack()">⬅</div>
+
+    <!-- 全局右上角背景音樂開關按鈕 -->
+    <div id="btn-music-toggle" class="btn-music-toggle clickable muted" onclick="toggleMusic()" title="點擊播放背景音樂">
+        <span id="music-icon">🔇</span>
+    </div>
+
+    <!-- 隱藏的 YouTube 音訊播放器容器 -->
+    <div id="youtube-audio-player" style="position: absolute; width: 1px; height: 1px; left: -9999px; top: -9999px; opacity: 0.01; pointer-events: none;"></div>
 
     <!-- 1. 開場動畫畫面 -->
     <div id="loading-screen" class="screen active">
@@ -505,55 +681,62 @@
                 <circle cx="50" cy="45" r="25" fill="#4caf50"/>
                 <circle cx="35" cy="50" r="18" fill="#66bb6a"/>
                 <circle cx="65" cy="50" r="18" fill="#66bb6a"/>
+                
+                <g id="flowers" class="bloom-item">
+                    <circle cx="40" cy="40" r="3.5" fill="#f48fb1"/>
+                    <circle cx="40" cy="40" r="1.5" fill="#fff59d"/>
+                    <circle cx="60" cy="42" r="3.5" fill="#f48fb1"/>
+                    <circle cx="60" cy="42" r="1.5" fill="#fff59d"/>
+                    <circle cx="50" cy="52" r="3.5" fill="#f48fb1"/>
+                    <circle cx="50" cy="52" r="1.5" fill="#fff59d"/>
+                    <circle cx="45" cy="32" r="3.5" fill="#f48fb1"/>
+                    <circle cx="45" cy="32" r="1.5" fill="#fff59d"/>
+                </g>
+
+                <g id="apples" class="bloom-item">
+                    <circle cx="38" cy="42" r="5" fill="#e53935"/>
+                    <circle cx="62" cy="45" r="5" fill="#e53935"/>
+                    <circle cx="50" cy="32" r="5.5" fill="#e53935"/>
+                    <circle cx="48" cy="55" r="4.8" fill="#e53935"/>
+                </g>
             </svg>
-            <div class="water-drop"></div>
+            <div class="water-drop" id="water-drop"></div>
         </div>
 
-        <div class="apple-container" id="apple-box">
-            <div class="apple-half apple-left"></div>
-            <div class="apple-half apple-right"></div>
-        </div>
-
-        <div class="title-text" id="main-title-text">校園植物辨認大賽</div>
+        <div class="title-text" id="main-title-text">校園植物挑戰賽</div>
     </div>
 
-    <!-- 2. 年級選擇主選單 -->
+    <!-- 2. 主頁：年級選擇選單 -->
     <div id="main-menu" class="screen">
-        <div class="main-title">校園植物辨認大賽</div>
+        <div class="main-title">校園植物挑戰賽</div>
         <div class="button-group">
             <div class="btn-card clickable" onclick="selectGrade('low')">低年級</div>
             <div class="btn-card clickable" onclick="selectGrade('mid')">中年級</div>
             <div class="btn-card clickable" onclick="selectGrade('high')">高年級</div>
         </div>
-        <div class="admin-gear clickable" onclick="openAdmin()">
-            ⚙️ 主頁後台
+        <div class="admin-gear clickable" onclick="enterAdminMode()">
+            ⚙️ 後台
         </div>
     </div>
 
-    <!-- 3. 學生答題：題型選擇選單 -->
+    <!-- 3. 前台：題型選擇選單 -->
     <div id="type-menu" class="screen">
         <div class="main-title" id="grade-title-display">年級組別</div>
         <div class="button-group">
             <div class="btn-card clickable" onclick="startQuiz('TF')">是非題</div>
-            <div class="btn-card clickable" onclick="alert('選擇題庫建置中！')">選擇題</div>
-            <div class="btn-card clickable" onclick="alert('問答題庫建置中！')">問答題</div>
+            <div class="btn-card clickable" onclick="startQuiz('MC')">選擇題</div>
+            <div class="btn-card clickable" onclick="startQuiz('QA')">問答題</div>
         </div>
     </div>
 
-    <!-- 4. 是非題測驗畫面 -->
+    <!-- 4. 前台：測驗通用畫面 (是非題 / 選擇題 / 問答題) -->
     <div id="quiz-screen" class="screen">
-        <div class="question-box">
-            <div class="question-text-content" id="question-text">準備開始...</div>
-            <img id="quiz-img-display" class="question-img" style="display: none;" alt="題目圖片" />
-        </div>
-        <div class="options-box">
-            <div class="option-card option-circle" id="opt-O">○</div>
-            <div class="option-card option-cross" id="opt-X">×</div>
-        </div>
-        <div id="quiz-next-btn" class="clickable quiz-next-btn" onclick="handleQuizNext()">下一題</div>
+        <div class="question-box" id="question-text">準備開始...</div>
+        <div class="options-box" id="options-container"></div>
+        <div id="action-btn-area"></div>
     </div>
 
-    <!-- 5. 後台：選擇年級 -->
+    <!-- 5. 後台：年級選擇頁面 -->
     <div id="admin-grade-menu" class="screen">
         <div class="main-title">後台管理 - 請選擇年級</div>
         <div class="button-group">
@@ -563,382 +746,838 @@
         </div>
     </div>
 
-    <!-- 6. 後台：選擇題庫類型 -->
+    <!-- 6. 後台：題型選擇頁面 -->
     <div id="admin-type-menu" class="screen">
-        <div class="main-title" id="admin-grade-title-display">後台管理</div>
+        <div class="main-title" id="admin-grade-title-display">後台 - 題型選擇</div>
         <div class="button-group">
-            <div class="btn-card clickable" onclick="openAdminBank('TF')">是非題題庫</div>
-            <div class="btn-card clickable" onclick="alert('選擇題題庫建置中！')">選擇題題庫</div>
-            <div class="btn-card clickable" onclick="alert('問答題題庫建置中！')">問答題題庫</div>
+            <div class="btn-card clickable" onclick="enterAdminBank('TF')">是非題題庫</div>
+            <div class="btn-card clickable" onclick="enterAdminBank('MC')">選擇題題庫</div>
+            <div class="btn-card clickable" onclick="enterAdminBank('QA')">問答題題庫</div>
         </div>
     </div>
 
-    <!-- 7. 後台：是非題題庫列表與管理 -->
-    <div id="admin-bank-screen" class="screen">
-        <div class="admin-panel">
+    <!-- 7. 後台：題庫列表頁面 -->
+    <div id="admin-bank" class="screen">
+        <div class="admin-box">
             <div class="admin-header">
-                <h2 id="bank-title-display">是非題題庫</h2>
-                <div class="bank-top-actions">
-                    <input type="text" id="bank-search-input" placeholder="🔍 搜尋題目內容..." oninput="renderAdminBankList()" class="search-input">
-                    <button class="action-btn primary clickable" onclick="navigateTo('admin-add-screen')">➕ 新增題目</button>
-                    <button class="action-btn secondary clickable" onclick="document.getElementById('batch-txt-input').click()">📁 批次匯入 (.txt)</button>
-                    <input type="file" id="batch-txt-input" accept=".txt" style="display:none;" onchange="handleBatchTxtUpload(event)">
-                </div>
+                <h2 id="bank-title" style="color: #2e7d32;">題庫管理</h2>
+                <input type="text" id="bank-search-input" class="search-input" placeholder="🔍 搜尋題目關鍵字..." oninput="filterBankQuestions()">
+                <button class="admin-btn clickable" onclick="openAddQuestionForm()">➕ 新增題目</button>
+                <button class="admin-btn admin-btn-blue clickable" onclick="selectAllQuestions()">☑️ 全選</button>
+                <button class="admin-btn admin-btn-blue clickable" onclick="downloadQuestions()">📥 下載題目</button>
+                <button class="admin-btn admin-btn-red clickable" onclick="batchDeleteQuestions()">🗑️ 刪除選取題目</button>
+                <label for="txt-file-input" class="admin-btn admin-btn-blue clickable">📁 批次匯入 (.txt)</label>
+                <input type="file" id="txt-file-input" accept=".txt" onchange="handleTxtUpload(event)" style="display:none;">
             </div>
-            <div class="bank-list-container" id="bank-list">
-                <!-- 動態呈現題庫題目 -->
+            <div class="bank-list" id="question-list-container"></div>
+        </div>
+    </div>
+
+    <!-- 8. 後台：新增/編輯題目畫面 -->
+    <div id="admin-add-edit" class="screen">
+        <div class="admin-box">
+            <h2 id="add-edit-title" style="color: #2e7d32; text-align: left; padding-bottom: 10px; border-bottom: 2px solid #e0e0e0;">新增題目</h2>
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="add-q-text">題目敘述：</label>
+                    <textarea id="add-q-text" class="form-textarea" rows="3" placeholder="請輸入題目內容..."></textarea>
+                </div>
+                
+                <div class="form-group" id="ans-input-wrapper"></div>
+
+                <div class="form-group">
+                    <label for="add-q-img">題目圖片 (可選)：</label>
+                    <input type="file" id="add-q-img" accept="image/*" onchange="previewAddImg(event)">
+                    <img id="img-preview" class="img-preview-box" alt="預覽圖">
+                </div>
+
+                <div class="form-actions-bottom">
+                    <button class="btn-save clickable" onclick="saveNewQuestion()">保存</button>
+                    <button class="btn-delete-single clickable" id="btn-delete-single" onclick="deleteCurrentEditingQuestion()">刪除題目</button>
+                    <button class="btn-cancel clickable" onclick="cancelAddQuestion()">取消</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- 8. 後台：新增題目畫面 -->
-    <div id="admin-add-screen" class="screen">
-        <div class="admin-form-box">
-            <h2 class="form-title">新增是非題題目</h2>
-
-            <div class="form-group">
-                <label for="add-q-desc">題目敘述：</label>
-                <textarea id="add-q-desc" placeholder="請在此輸入題目敘述..." rows="3"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="add-q-ans">題目答案：</label>
-                <select id="add-q-ans">
-                    <option value="O">圈 (0 - 正確)</option>
-                    <option value="X">叉 (1 - 錯誤)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="add-q-img">題目圖片 (選填)：</label>
-                <input type="file" id="add-q-img" accept="image/*" onchange="handleImageUpload(event)">
-                <div id="img-preview-container" style="margin-top: 8px; display: none; align-items: center; gap: 10px;">
-                    <img id="img-preview" style="max-height: 100px; border-radius: 8px; border: 2px solid #a5d6a7;">
-                    <button type="button" onclick="clearUploadImage()" style="padding: 4px 10px; cursor: pointer;">刪除圖片</button>
-                </div>
-            </div>
-
-            <!-- 右下角按鈕由左至右分別為「保存」和「取消」 -->
-            <div class="form-bottom-actions">
-                <button type="button" class="btn-save clickable" onclick="saveNewQuestion()">保存</button>
-                <button type="button" class="btn-cancel clickable" onclick="resetAddForm()">取消</button>
+    <!-- 9. 通用自訂Modal (取代 alert / confirm) -->
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-title" id="modal-title">提示</div>
+            <div class="modal-msg" id="modal-msg">內容</div>
+            <div class="modal-btn-group" id="modal-btn-group">
+                <button class="modal-btn modal-btn-confirm" id="modal-btn-ok">確定</button>
             </div>
         </div>
     </div>
+
+    <!-- 載入 YouTube IFrame Player API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        // === 題庫資料 ===
+        // === 題庫資料結構 ===
         const questionBank = {
-            low: [
-                { q: "榕樹的樹幹上常常會有垂下來的氣根。", a: "O" },
-                { q: "杜鵑花只有白色的，沒有其他顏色。", a: "X" },
-                { q: "植物的葉子大多是綠色的。", a: "O" },
-                { q: "向日葵的花朵會朝向太陽的方向。", a: "O" },
-                { q: "植物不需要澆水也可以活得很好。", a: "X" },
-                { q: "校園裡的草皮也是由植物組成的。", a: "O" }
-            ],
-            mid: [
-                { q: "植物進行光合作用主要需要太陽光、水和二氧化碳。", a: "O" },
-                { q: "所有植物的花朵都有漂亮的花瓣來吸引昆蟲。", a: "X" },
-                { q: "蕨類植物是不會開花結實的。", a: "O" },
-                { q: "大王椰子的樹幹會越長越粗，跟一般樹木一樣。", a: "X" },
-                { q: "楓樹的葉子在秋天變紅是因為葉綠素減少。", a: "O" },
-                { q: "植物的根部只有吸收水分的作用，不能固定植物。", a: "X" }
-            ],
-            high: [
-                { q: "氣孔是植物進行氣體交換與蒸散作用的主要構造。", a: "O" },
-                { q: "裸子植物的種子外面有果實包覆著。", a: "X" },
-                { q: "校園常見的樟樹，撕碎葉子揉搓會有特殊的香氣。", a: "O" },
-                { q: "植物的木質部主要負責運輸光合作用產生的養分。", a: "X" },
-                { q: "植物的蒸散作用有助於拉動水分向上運輸。", a: "O" },
-                { q: "竹子是屬於草本植物而非木本植物。", a: "O" }
-            ]
+            low: {
+                TF: [
+                    { q: "榕樹的樹幹上常常會有垂下來的氣根。", a: "O" },
+                    { q: "杜鵑花只有白色的，沒有其他顏色。", a: "X" },
+                    { q: "植物的葉子大多是綠色的。", a: "O" },
+                    { q: "向日葵的花朵會朝向太陽的方向。", a: "O" },
+                    { q: "植物不需要澆水也可以活得很好。", a: "X" },
+                    { q: "校園裡的草皮也是由植物組成的。", a: "O" }
+                ],
+                MC: [
+                    { q: "下列哪一種器官主要負責吸收水分和養分？", a: "B" },
+                    { q: "榕樹垂下來像鬍鬚一樣的結構叫什麼？", a: "A" },
+                    { q: "植物製造養分最重要的器官是？", a: "C" },
+                    { q: "下列哪一種植物常見於校園草坪且會開黃色小花？", a: "D" }
+                ],
+                QA: [
+                    { q: "請寫出植物吸收水分的主要器官名稱。", a: "根" },
+                    { q: "榕樹樹幹上垂下來像鬍鬚一樣的結構稱為？", a: "氣根" },
+                    { q: "植物進行光合作用主要依靠葉子中的什麼成分？", a: "葉綠素" }
+                ]
+            },
+            mid: {
+                TF: [
+                    { q: "植物進行光合作用主要需要太陽光、水和二氧化碳。", a: "O" },
+                    { q: "所有植物的花朵都有漂亮的花瓣來吸引昆蟲。", a: "X" },
+                    { q: "蕨類植物是不會開花結實的。", a: "O" },
+                    { q: "大王椰子的樹幹會越長越粗，跟一般樹木一樣。", a: "X" },
+                    { q: "楓樹的葉子在秋天變紅是因為葉綠素減少。", a: "O" },
+                    { q: "植物的根部只有吸收水分的作用，不能固定植物。", a: "X" }
+                ],
+                MC: [
+                    { q: "植物進行光合作用不需要下列哪一項元素？", a: "C" },
+                    { q: "下列哪一種植物屬於蕨類植物，不會開花？", a: "A" },
+                    { q: "楓樹葉子在秋天變紅主要是因為葉綠素分解後展現何種色素？", a: "B" }
+                ],
+                QA: [
+                    { q: "植物吸收二氧化碳並釋放氧氣的過程稱為？", a: "光合作用" },
+                    { q: "蕨類植物是用什麼構造來繁殖後代？", a: "孢子" },
+                    { q: "大王椰子樹幹屬於單子葉植物，因此缺乏哪種構造導致無法逐年加粗？", a: "形成層" }
+                ]
+            },
+            high: {
+                TF: [
+                    { q: "氣孔是植物進行氣體交換與蒸散作用的主要構造。", a: "O" },
+                    { q: "裸子植物的種子外面有果實包覆著。", a: "X" },
+                    { q: "校園常見的樟樹，撕碎葉子揉搓會有特殊的香氣。", a: "O" },
+                    { q: "植物的木質部主要負責運輸光合作用產生的養分。", a: "X" },
+                    { q: "植物的蒸散作用有助於拉動水分向上運輸。", a: "O" },
+                    { q: "竹子是屬於草本植物而非木本植物。", a: "O" }
+                ],
+                MC: [
+                    { q: "植物體內負責向上運輸水分與礦物質的組織是？", a: "A" },
+                    { q: "下列何者屬於草本植物而非木本植物？", a: "D" },
+                    { q: "樟樹葉片揉搓後散發的特有香氣主要來自何種物質？", a: "B" }
+                ],
+                QA: [
+                    { q: "植物葉片上供氣體進出與水分蒸散的小孔稱之為？", a: "氣孔" },
+                    { q: "韌皮部主要負責運輸光合作用產生的何種物質？", a: "養分" },
+                    { q: "松樹與杉樹種子裸露無果實包覆，屬於哪一類植物？", a: "裸子植物" }
+                ]
+            }
         };
 
-        const gradeNames = { low: '低年級', mid: '中年級', high: '高年級' };
-
+        // 狀態變數
         let currentGrade = 'low';
-        let adminGrade = 'low';
+        let currentAdminGrade = 'low';
+        let currentAdminType = 'TF';
+        let quizSequenceActive = false;
+        let screenStack = ['main-menu'];
+        let tempImgDataDataUrl = null;
+        let currentEditIndex = -1;
 
-        // 答題歷程狀態
-        let currentQuizQuestions = [];
-        let currentQuizIndex = 0;
+        // 音樂播放器狀態變數
+        let ytPlayer = null;
+        let isMusicPlaying = false;
+        let userInteracted = false;
 
-        // 上傳圖片暫存
-        let currentUploadedImgData = "";
+        // YouTube API 準備就緒回呼
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('youtube-audio-player', {
+                height: '1',
+                width: '1',
+                videoId: 'WuiAmn0YB9g',
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 0,
+                    'loop': 1,
+                    'playlist': 'WuiAmn0YB9g',
+                    'playsinline': 1,
+                    'enablejsapi': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
 
-        // 頁面堆疊管理 (實現正確的返回上一頁)
-        let screenStack = [];
-
-        // === 頁面導航與返回機制 ===
-        function navigateTo(targetId) {
-            const activeScreen = document.querySelector('.screen.active');
-            if (activeScreen && activeScreen.id !== targetId) {
-                screenStack.push(activeScreen.id);
+        function onPlayerReady(event) {
+            const iframe = document.getElementById('youtube-audio-player');
+            if (iframe) {
+                iframe.setAttribute('allow', 'autoplay');
             }
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(targetId).classList.add('active');
-            updateBackButton();
+            if (ytPlayer && typeof ytPlayer.setVolume === 'function') {
+                ytPlayer.setVolume(80);
+            }
+            // 嘗試自動播放
+            attemptPlayMusic();
+            // 綁定首度互動點擊解鎖機制
+            enableAutoplayOnFirstInteraction();
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+                    ytPlayer.playVideo();
+                }
+            }
+            if (event.data === YT.PlayerState.PLAYING) {
+                isMusicPlaying = true;
+                updateMusicButtonUI(true);
+            } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+                isMusicPlaying = false;
+                updateMusicButtonUI(false);
+            }
+        }
+
+        function attemptPlayMusic() {
+            if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+                try {
+                    ytPlayer.unMute();
+                    ytPlayer.playVideo();
+                } catch (e) {
+                    console.log("Autoplay blocked by browser policy.");
+                }
+            }
+        }
+
+        function enableAutoplayOnFirstInteraction() {
+            const handleFirstInteraction = () => {
+                if (!userInteracted) {
+                    userInteracted = true;
+                    if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+                        ytPlayer.unMute();
+                        ytPlayer.playVideo();
+                    }
+                }
+                document.removeEventListener('click', handleFirstInteraction);
+                document.removeEventListener('touchstart', handleFirstInteraction);
+                document.removeEventListener('keydown', handleFirstInteraction);
+                document.removeEventListener('pointerdown', handleFirstInteraction);
+            };
+
+            document.addEventListener('click', handleFirstInteraction);
+            document.addEventListener('touchstart', handleFirstInteraction);
+            document.addEventListener('keydown', handleFirstInteraction);
+            document.addEventListener('pointerdown', handleFirstInteraction);
+        }
+
+        function toggleMusic() {
+            if (!ytPlayer || typeof ytPlayer.playVideo !== 'function') {
+                customAlert('背景音樂載入中，請稍後再試！');
+                return;
+            }
+
+            if (isMusicPlaying) {
+                ytPlayer.pauseVideo();
+                isMusicPlaying = false;
+                updateMusicButtonUI(false);
+            } else {
+                ytPlayer.unMute();
+                ytPlayer.playVideo();
+                isMusicPlaying = true;
+                updateMusicButtonUI(true);
+            }
+        }
+
+        function updateMusicButtonUI(playing) {
+            const btn = document.getElementById('btn-music-toggle');
+            const icon = document.getElementById('music-icon');
+            if (!btn || !icon) return;
+
+            if (playing) {
+                icon.innerText = '🎵';
+                btn.classList.remove('muted');
+                btn.classList.add('playing');
+                btn.title = "點擊靜音背景音樂";
+            } else {
+                icon.innerText = '🔇';
+                btn.classList.add('muted');
+                btn.classList.remove('playing');
+                btn.title = "點擊播放背景音樂";
+            }
+        }
+
+        function customAlert(msg, title = '提示') {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('custom-modal');
+                document.getElementById('modal-title').innerText = title;
+                document.getElementById('modal-msg').innerText = msg;
+                const btnGroup = document.getElementById('modal-btn-group');
+                btnGroup.innerHTML = `<button class="modal-btn modal-btn-confirm clickable" id="modal-ok-btn">確定</button>`;
+                
+                modal.classList.add('active');
+                document.getElementById('modal-ok-btn').onclick = () => {
+                    modal.classList.remove('active');
+                    resolve();
+                };
+            });
+        }
+
+        function customConfirm(msg, title = '確認') {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('custom-modal');
+                document.getElementById('modal-title').innerText = title;
+                document.getElementById('modal-msg').innerText = msg;
+                const btnGroup = document.getElementById('modal-btn-group');
+                btnGroup.innerHTML = `
+                    <button class="modal-btn modal-btn-confirm clickable" id="modal-yes-btn">確定</button>
+                    <button class="modal-btn modal-btn-cancel clickable" id="modal-no-btn">取消</button>
+                `;
+                
+                modal.classList.add('active');
+                document.getElementById('modal-yes-btn').onclick = () => {
+                    modal.classList.remove('active');
+                    resolve(true);
+                };
+                document.getElementById('modal-no-btn').onclick = () => {
+                    modal.classList.remove('active');
+                    resolve(false);
+                };
+            });
+        }
+
+        function navigateTo(targetId) {
+            const currentId = screenStack[screenStack.length - 1];
+            if (currentId !== targetId) {
+                document.getElementById(currentId).classList.remove('active');
+                document.getElementById(targetId).classList.add('active');
+                screenStack.push(targetId);
+            }
+            updateBackBtn();
         }
 
         function goBack() {
-            if (screenStack.length > 0) {
-                const prevScreenId = screenStack.pop();
-                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-                document.getElementById(prevScreenId).classList.add('active');
-                updateBackButton();
+            quizSequenceActive = false;
+            if (screenStack.length > 1) {
+                const currentId = screenStack.pop();
+                const prevId = screenStack[screenStack.length - 1];
+                document.getElementById(currentId).classList.remove('active');
+                document.getElementById(prevId).classList.add('active');
+
+                if (prevId === 'admin-bank') {
+                    renderQuestionBank();
+                }
             }
+            updateBackBtn();
         }
 
-        function updateBackButton() {
-            const activeScreen = document.querySelector('.screen.active');
+        function updateBackBtn() {
             const backBtn = document.getElementById('btn-back');
-            if (!activeScreen || activeScreen.id === 'loading-screen' || activeScreen.id === 'main-menu') {
+            const currentId = screenStack[screenStack.length - 1];
+            if (currentId === 'main-menu' || currentId === 'loading-screen') {
                 backBtn.style.display = 'none';
             } else {
-                backBtn.style.display = 'block';
+                backBtn.style.display = 'flex';
             }
         }
 
-        // === 開場動畫流程 ===
         window.addEventListener('DOMContentLoaded', () => {
             const treeBox = document.getElementById('tree-box');
-            const appleBox = document.getElementById('apple-box');
+            const waterDrop = document.getElementById('water-drop');
+            const flowers = document.getElementById('flowers');
+            const apples = document.getElementById('apples');
             const titleText = document.getElementById('main-title-text');
 
+            // 1. 開花 (1.2秒)
             setTimeout(() => {
-                treeBox.style.opacity = '0';
-                setTimeout(() => {
-                    treeBox.style.display = 'none';
-                    appleBox.style.opacity = '1';
-                }, 500);
-            }, 2500);
+                if (flowers) flowers.classList.add('active');
+            }, 1200);
 
+            // 2. 結果 (2.6秒)
             setTimeout(() => {
-                appleBox.classList.add('split');
+                if (flowers) flowers.classList.remove('active');
+                if (apples) apples.classList.add('active');
+            }, 2600);
+
+            // 3. 植物淡出 (4.2秒)
+            setTimeout(() => {
+                if (waterDrop) waterDrop.style.display = 'none';
+                treeBox.style.opacity = '0';
+            }, 4200);
+
+            // 4. 顯示大字「校園植物挑戰賽」(5.2秒)
+            setTimeout(() => {
+                treeBox.style.display = 'none';
                 titleText.style.opacity = '1';
                 titleText.style.transform = 'scale(1.2)';
-            }, 4000);
+            }, 5200);
 
+            // 5. 進入主選單 (7.0秒) 並且試圖開啟音樂
             setTimeout(() => {
-                navigateTo('main-menu');
-                screenStack = []; // 重置堆疊
-                updateBackButton();
-            }, 6000);
+                document.getElementById('loading-screen').classList.remove('active');
+                document.getElementById('main-menu').classList.add('active');
+                updateBackBtn();
+                attemptPlayMusic();
+            }, 7000);
         });
 
-        // === 選擇年級 (學生端) ===
         function selectGrade(grade) {
             currentGrade = grade;
-            document.getElementById('grade-title-display').innerText = `${gradeNames[grade]} - 請選擇題型`;
+            const names = { low: '低年級', mid: '中年級', high: '高年級' };
+            document.getElementById('grade-title-display').innerText = `${names[grade]} - 請選擇題型`;
             navigateTo('type-menu');
         }
 
-        // === 1. 是非題答題流程 ===
-        function startQuiz(type) {
-            if (type !== 'TF') return;
-
-            const pool = [...questionBank[currentGrade]];
-            const shuffled = pool.sort(() => 0.5 - Math.random());
-            currentQuizQuestions = shuffled.slice(0, 5);
-            currentQuizIndex = 0;
+        async function startQuiz(type) {
+            const pool = questionBank[currentGrade] ? questionBank[currentGrade][type] : [];
+            if (!pool || pool.length === 0) {
+                await customAlert('該類別目前尚無題目！');
+                return;
+            }
 
             navigateTo('quiz-screen');
-            renderQuizQuestion();
+
+            const shuffled = [...pool];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            const selectedQuestions = shuffled.slice(0, Math.min(5, shuffled.length));
+
+            runQuizEngine(selectedQuestions, type);
         }
 
-        function renderQuizQuestion() {
-            const qData = currentQuizQuestions[currentQuizIndex];
+        async function runQuizEngine(questions, type) {
+            quizSequenceActive = true;
             const qBox = document.getElementById('question-text');
-            const qImg = document.getElementById('quiz-img-display');
-            const optO = document.getElementById('opt-O');
-            const optX = document.getElementById('opt-X');
-            const nextBtn = document.getElementById('quiz-next-btn');
+            const optionsContainer = document.getElementById('options-container');
+            const actionBtnArea = document.getElementById('action-btn-area');
 
-            qBox.innerText = `第 ${currentQuizIndex + 1} 題：${qData.q}`;
+            for (let i = 0; i < questions.length; i++) {
+                if (!quizSequenceActive) break;
 
-            if (qData.img) {
-                qImg.src = qData.img;
-                qImg.style.display = 'block';
-            } else {
-                qImg.style.display = 'none';
+                actionBtnArea.innerHTML = '';
+
+                if (type === 'TF') {
+                    optionsContainer.innerHTML = `
+                        <div class="option-card option-circle" id="opt-O">○</div>
+                        <div class="option-card option-cross" id="opt-X">×</div>
+                    `;
+                } else if (type === 'MC') {
+                    optionsContainer.innerHTML = `
+                        <div class="option-card option-mc-a" id="opt-A">A</div>
+                        <div class="option-card option-mc-b" id="opt-B">B</div>
+                        <div class="option-card option-mc-c" id="opt-C">C</div>
+                        <div class="option-card option-mc-d" id="opt-D">D</div>
+                    `;
+                } else if (type === 'QA') {
+                    optionsContainer.innerHTML = `
+                        <div class="qa-answer-card" id="qa-card">
+                            <div class="qa-label">💡 正確答案揭曉</div>
+                            <div class="qa-text-display" id="qa-answer-text">...</div>
+                        </div>
+                    `;
+                }
+
+                qBox.innerText = `第 ${i + 1} 題`;
+                await sleep(2000);
+                if (!quizSequenceActive) break;
+
+                let qHtml = `<div>${questions[i].q}</div>`;
+                if (questions[i].img) {
+                    qHtml += `<img src="${questions[i].img}" class="quiz-q-img">`;
+                }
+                qBox.innerHTML = qHtml;
+                await sleep(4000);
+                if (!quizSequenceActive) break;
+
+                if (type === 'TF') {
+                    const targetId = questions[i].a === 'O' ? 'opt-O' : 'opt-X';
+                    const targetEl = document.getElementById(targetId);
+                    if (targetEl) targetEl.classList.add('highlight');
+                } else if (type === 'MC') {
+                    const targetId = `opt-${questions[i].a.toUpperCase()}`;
+                    const targetEl = document.getElementById(targetId);
+                    if (targetEl) targetEl.classList.add('highlight');
+                } else if (type === 'QA') {
+                    const qaTextEl = document.getElementById('qa-answer-text');
+                    const qaCardEl = document.getElementById('qa-card');
+                    if (qaTextEl && qaCardEl) {
+                        qaTextEl.innerText = questions[i].a;
+                        qaCardEl.classList.add('show');
+                    }
+                }
+                await sleep(3000);
+                if (!quizSequenceActive) break;
+
+                if (i < questions.length - 1) {
+                    actionBtnArea.innerHTML = `<div class="next-prompt-btn clickable" id="btn-next-step">下一題 ➔</div>`;
+                    await new Promise((resolve) => {
+                        const btn = document.getElementById('btn-next-step');
+                        if (btn) {
+                            btn.onclick = () => {
+                                actionBtnArea.innerHTML = '';
+                                resolve();
+                            };
+                        } else resolve();
+                    });
+                } else {
+                    actionBtnArea.innerHTML = `<div class="end-stage-btn clickable" id="btn-end-stage">本階段結束</div>`;
+                    await new Promise((resolve) => {
+                        const btn = document.getElementById('btn-end-stage');
+                        if (btn) {
+                            btn.onclick = () => {
+                                actionBtnArea.innerHTML = '';
+                                goBack();
+                                resolve();
+                            };
+                        } else resolve();
+                    });
+                }
             }
-
-            // 高亮標示正確答案
-            optO.classList.remove('highlight');
-            optX.classList.remove('highlight');
-            if (qData.a === 'O') {
-                optO.classList.add('highlight');
-            } else {
-                optX.classList.add('highlight');
-            }
-
-            // 按鈕文字控制
-            if (currentQuizIndex < 4) {
-                nextBtn.innerText = "下一題";
-            } else {
-                nextBtn.innerText = "本階段結束";
-            }
+            actionBtnArea.innerHTML = '';
         }
 
-        function handleQuizNext() {
-            if (currentQuizIndex < 4) {
-                currentQuizIndex++;
-                renderQuizQuestion();
-            } else {
-                // 回到該年級段的題型選擇頁面
-                screenStack = ['main-menu'];
-                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-                document.getElementById('type-menu').classList.add('active');
-                updateBackButton();
-            }
-        }
-
-        // === 2. 主頁後台功能流程 ===
-        function openAdmin() {
+        function enterAdminMode() {
             navigateTo('admin-grade-menu');
         }
 
         function selectAdminGrade(grade) {
-            adminGrade = grade;
-            document.getElementById('admin-grade-title-display').innerText = `${gradeNames[grade]} - 後台管理`;
+            currentAdminGrade = grade;
+            const names = { low: '低年級', mid: '中年級', high: '高年級' };
+            document.getElementById('admin-grade-title-display').innerText = `[${names[grade]}] 後台 - 題型選擇`;
             navigateTo('admin-type-menu');
         }
 
-        function openAdminBank(type) {
-            if (type === 'TF') {
-                document.getElementById('bank-title-display').innerText = `${gradeNames[adminGrade]} - 是非題題庫`;
-                renderAdminBankList();
-                navigateTo('admin-bank-screen');
-            }
+        function enterAdminBank(type) {
+            currentAdminType = type;
+            const gradeNames = { low: '低年級', mid: '中年級', high: '高年級' };
+            const typeNames = { TF: '是非題', MC: '選擇題', QA: '問答題' };
+            document.getElementById('bank-title').innerText = `[${gradeNames[currentAdminGrade]}] ${typeNames[currentAdminType]}題庫`;
+            renderQuestionBank();
+            navigateTo('admin-bank');
         }
 
-        // === 3. 題庫列表與搜尋功能 ===
-        function renderAdminBankList() {
-            const bankList = document.getElementById('bank-list');
-            const filterText = document.getElementById('bank-search-input').value.trim().toLowerCase();
-            const list = questionBank[adminGrade] || [];
+        function renderQuestionBank() {
+            const listContainer = document.getElementById('question-list-container');
+            const searchKeyword = document.getElementById('bank-search-input').value.trim().toLowerCase();
+            const questions = (questionBank[currentAdminGrade] && questionBank[currentAdminGrade][currentAdminType]) || [];
 
-            bankList.innerHTML = '';
+            listContainer.innerHTML = '';
 
-            list.forEach((item, index) => {
-                if (filterText && !item.q.toLowerCase().includes(filterText)) {
-                    return;
-                }
+            const filtered = questions.map((item, originalIndex) => ({ item, originalIndex }))
+                             .filter(obj => obj.item.q.toLowerCase().includes(searchKeyword));
 
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'bank-item';
-                itemDiv.innerHTML = `
-                    <div class="bank-item-info">
-                        <span class="bank-item-ans ${item.a === 'O' ? 'ans-o' : 'ans-x'}">${item.a === 'O' ? '○' : '×'}</span>
-                        <span class="bank-item-text">${item.q}</span>
-                    </div>
-                    ${item.img ? `<img src="${item.img}" class="bank-item-thumb" alt="圖片">` : ''}
-                    <button class="btn-delete" title="刪除題目" onclick="deleteQuestion(${index})">🗑️</button>
-                `;
-                bankList.appendChild(itemDiv);
-            });
-
-            if (bankList.children.length === 0) {
-                bankList.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">無匹配的題目或題庫為空</div>';
-            }
-        }
-
-        function deleteQuestion(index) {
-            if (confirm("確定要刪除這道題目嗎？")) {
-                questionBank[adminGrade].splice(index, 1);
-                renderAdminBankList();
-            }
-        }
-
-        // === 4. 手動新增題目功能 ===
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    currentUploadedImgData = e.target.result;
-                    document.getElementById('img-preview').src = currentUploadedImgData;
-                    document.getElementById('img-preview-container').style.display = 'flex';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function clearUploadImage() {
-            currentUploadedImgData = "";
-            document.getElementById('add-q-img').value = "";
-            document.getElementById('img-preview').src = "";
-            document.getElementById('img-preview-container').style.display = 'none';
-        }
-
-        function saveNewQuestion() {
-            const qDesc = document.getElementById('add-q-desc').value.trim();
-            const qAns = document.getElementById('add-q-ans').value;
-
-            if (!qDesc) {
-                alert("請輸入題目敘述！");
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `<div style="text-align:center; color:#888; padding:30px;">尚無相關題目</div>`;
                 return;
             }
 
-            const newQuestion = {
-                q: qDesc,
-                a: qAns
-            };
-            if (currentUploadedImgData) {
-                newQuestion.img = currentUploadedImgData;
+            filtered.forEach((obj, displayIdx) => {
+                const item = obj.item;
+                const realIndex = obj.originalIndex;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'bank-item clickable';
+                itemDiv.onclick = (e) => {
+                    if (e.target.tagName !== 'INPUT') {
+                        editQuestion(realIndex);
+                    }
+                };
+                
+                let imgTag = item.img ? `<img src="${item.img}" style="max-width:60px; max-height:40px; border-radius:5px; margin-left:10px; object-fit:contain;">` : '';
+
+                let badgeClass = 'badge-QA';
+                let badgeContent = item.a;
+
+                if (currentAdminType === 'TF') {
+                    badgeClass = item.a === 'O' ? 'badge-O' : 'badge-X';
+                    badgeContent = item.a === 'O' ? '○' : '×';
+                } else if (currentAdminType === 'MC') {
+                    badgeClass = `badge-${item.a.toUpperCase()}`;
+                    badgeContent = item.a.toUpperCase();
+                }
+
+                itemDiv.innerHTML = `
+                    <input type="checkbox" class="bank-checkbox" data-index="${realIndex}" style="width: 22px; height: 22px; cursor: pointer; margin-right: 10px;" onclick="event.stopPropagation();">
+                    <span style="font-weight:bold; color:#888; width:30px;">${displayIdx + 1}.</span>
+                    <div class="bank-item-text">${item.q}${imgTag}</div>
+                    <div class="badge-ans ${badgeClass}">${badgeContent}</div>
+                `;
+                listContainer.appendChild(itemDiv);
+            });
+        }
+
+        function filterBankQuestions() {
+            renderQuestionBank();
+        }
+
+        function selectAllQuestions() {
+            const checkboxes = document.querySelectorAll('.bank-checkbox');
+            checkboxes.forEach(cb => cb.checked = true);
+        }
+
+        async function downloadQuestions() {
+            const questions = (questionBank[currentAdminGrade] && questionBank[currentAdminGrade][currentAdminType]) || [];
+            if (questions.length === 0) {
+                await customAlert('目前沒有可下載的題目！');
+                return;
             }
 
-            questionBank[adminGrade].push(newQuestion);
-            alert("題目已成功保存到題庫！可繼續輸入新題目。");
-            resetAddForm();
+            let lines = [];
+
+            if (currentAdminType === 'TF') {
+                lines = questions.map(item => `"${item.q}",${item.a === 'O' ? '0' : '1'}`);
+            } else if (currentAdminType === 'MC') {
+                lines = questions.map(item => `"${item.q}",${item.a.toUpperCase()}`);
+            } else if (currentAdminType === 'QA') {
+                lines = questions.map(item => `"${item.q}",${item.a}`);
+            }
+
+            const txtContent = lines.join('\n');
+            const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+
+            const gradeNames = { low: '低年級', mid: '中年級', high: '高年級' };
+            const typeNames = { TF: '是非題', MC: '選擇題', QA: '問答題' };
+            link.download = `${gradeNames[currentAdminGrade]}_${typeNames[currentAdminType]}題庫.txt`;
+            link.click();
+            URL.revokeObjectURL(link.href);
         }
 
-        function resetAddForm() {
-            document.getElementById('add-q-desc').value = "";
-            document.getElementById('add-q-ans').value = "O";
-            clearUploadImage();
-        }
-
-        // === 5. 文字檔 (txt) 批次匯入題目功能 ===
-        function handleBatchTxtUpload(event) {
+        function handleTxtUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 const content = e.target.result;
                 const lines = content.split(/\r?\n/);
                 let count = 0;
 
                 lines.forEach(line => {
-                    const trimmed = line.trim();
-                    if (!trimmed) return;
+                    line = line.trim();
+                    if (!line) return;
 
-                    // 解析格式: "題目文字敘述",0 或 "題目文字敘述",1
-                    const match = trimmed.match(/^\s*["“]([^"”]+)["”]\s*[,，]\s*([01])\s*$/);
+                    const regex = /^"(.*)"\s*,\s*(.*)$/;
+                    const match = line.match(regex);
+
                     if (match) {
                         const qText = match[1];
-                        const ansCode = match[2];
-                        const ans = (ansCode === "0") ? "O" : "X";
+                        let rawAns = match[2].trim();
 
-                        questionBank[adminGrade].push({
-                            q: qText,
-                            a: ans
-                        });
-                        count++;
+                        if (currentAdminType === 'TF') {
+                            let ansVal = 'O';
+                            if (rawAns === '1' || rawAns.toUpperCase() === 'X') {
+                                ansVal = 'X';
+                            }
+                            questionBank[currentAdminGrade].TF.push({ q: qText, a: ansVal });
+                            count++;
+                        } else if (currentAdminType === 'MC') {
+                            const upperAns = rawAns.toUpperCase();
+                            if (['A', 'B', 'C', 'D'].includes(upperAns)) {
+                                questionBank[currentAdminGrade].MC.push({ q: qText, a: upperAns });
+                                count++;
+                            }
+                        } else if (currentAdminType === 'QA') {
+                            if (rawAns) {
+                                questionBank[currentAdminGrade].QA.push({ q: qText, a: rawAns });
+                                count++;
+                            }
+                        }
                     }
                 });
 
-                if (count > 0) {
-                    alert(`成功批次匯入 ${count} 道是非題！`);
-                    renderAdminBankList();
-                } else {
-                    alert("未能成功讀取題目，請確認TXT格式是否為：\n\"題目敘述\",0\n\"題目敘述\",1");
-                }
-                event.target.value = ''; // 清空檔案選擇器
+                await customAlert(`成功匯入 ${count} 道題目！`);
+                renderQuestionBank();
+                event.target.value = '';
             };
             reader.readAsText(file, 'UTF-8');
+        }
+
+        async function batchDeleteQuestions() {
+            const checkboxes = document.querySelectorAll('.bank-checkbox:checked');
+            if (checkboxes.length === 0) {
+                await customAlert('請先勾選要刪除的題目！');
+                return;
+            }
+
+            const confirmed = await customConfirm(`確定要刪除選取的 ${checkboxes.length} 個題目嗎？`);
+            if (confirmed) {
+                const indicesToDelete = Array.from(checkboxes)
+                    .map(cb => parseInt(cb.dataset.index))
+                    .sort((a, b) => b - a);
+
+                indicesToDelete.forEach(idx => {
+                    questionBank[currentAdminGrade][currentAdminType].splice(idx, 1);
+                });
+
+                await customAlert(`已成功刪除 ${indicesToDelete.length} 題！`);
+                renderQuestionBank();
+            }
+        }
+
+        function openAddQuestionForm() {
+            currentEditIndex = -1;
+            const typeNames = { TF: '是非題', MC: '選擇題', QA: '問答題' };
+            document.getElementById('add-edit-title').innerText = `新增${typeNames[currentAdminType]}`;
+            document.getElementById('btn-delete-single').style.display = 'none';
+            
+            setupAnswerInputContainer();
+            clearAddQuestionForm();
+            navigateTo('admin-add-edit');
+        }
+
+        function editQuestion(index) {
+            currentEditIndex = index;
+            const item = questionBank[currentAdminGrade][currentAdminType][index];
+            const typeNames = { TF: '是非題', MC: '選擇題', QA: '問答題' };
+
+            document.getElementById('add-edit-title').innerText = `編輯${typeNames[currentAdminType]}`;
+            document.getElementById('add-q-text').value = item.q;
+
+            setupAnswerInputContainer();
+            
+            const ansInput = document.getElementById('add-q-ans');
+            if (ansInput) ansInput.value = item.a;
+
+            const previewBox = document.getElementById('img-preview');
+            if (item.img) {
+                tempImgDataDataUrl = item.img;
+                previewBox.src = item.img;
+                previewBox.style.display = 'block';
+            } else {
+                tempImgDataDataUrl = null;
+                previewBox.src = '';
+                previewBox.style.display = 'none';
+            }
+
+            document.getElementById('btn-delete-single').style.display = 'inline-block';
+            navigateTo('admin-add-edit');
+        }
+
+        function setupAnswerInputContainer() {
+            const wrapper = document.getElementById('ans-input-wrapper');
+            if (currentAdminType === 'TF') {
+                wrapper.innerHTML = `
+                    <label for="add-q-ans">正確答案：</label>
+                    <select id="add-q-ans" class="form-select">
+                        <option value="O">○ 圈 (正確)</option>
+                        <option value="X">× 叉 (錯誤)</option>
+                    </select>
+                `;
+            } else if (currentAdminType === 'MC') {
+                wrapper.innerHTML = `
+                    <label for="add-q-ans">正確答案：</label>
+                    <select id="add-q-ans" class="form-select">
+                        <option value="A">選項 A</option>
+                        <option value="B">選項 B</option>
+                        <option value="C">選項 C</option>
+                        <option value="D">選項 D</option>
+                    </select>
+                `;
+            } else if (currentAdminType === 'QA') {
+                wrapper.innerHTML = `
+                    <label for="add-q-ans">正確答案 (文字)：</label>
+                    <input type="text" id="add-q-ans" class="form-input" placeholder="請輸入正確答案內容...">
+                `;
+            }
+        }
+
+        async function deleteCurrentEditingQuestion() {
+            if (currentEditIndex !== -1) {
+                const confirmed = await customConfirm('確定要刪除此題目嗎？');
+                if (confirmed) {
+                    questionBank[currentAdminGrade][currentAdminType].splice(currentEditIndex, 1);
+                    await customAlert('題目已刪除！');
+                    clearAddQuestionForm();
+                    goBack();
+                }
+            }
+        }
+
+        function previewAddImg(e) {
+            const file = e.target.files[0];
+            const previewBox = document.getElementById('img-preview');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    tempImgDataDataUrl = evt.target.result;
+                    previewBox.src = tempImgDataDataUrl;
+                    previewBox.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                tempImgDataDataUrl = null;
+                previewBox.style.display = 'none';
+            }
+        }
+
+        async function saveNewQuestion() {
+            const qText = document.getElementById('add-q-text').value.trim();
+            const ansInput = document.getElementById('add-q-ans');
+            const qAns = ansInput ? ansInput.value.trim() : '';
+
+            if (!qText) {
+                await customAlert('請輸入題目敘述！');
+                return;
+            }
+
+            if (!qAns) {
+                await customAlert('請輸入或選擇正確答案！');
+                return;
+            }
+
+            const qData = {
+                q: qText,
+                a: qAns
+            };
+
+            if (tempImgDataDataUrl) {
+                qData.img = tempImgDataDataUrl;
+            }
+
+            if (currentEditIndex === -1) {
+                questionBank[currentAdminGrade][currentAdminType].push(qData);
+                await customAlert('題目新增成功！');
+            } else {
+                questionBank[currentAdminGrade][currentAdminType][currentEditIndex] = qData;
+                await customAlert('題目修改成功！');
+            }
+
+            clearAddQuestionForm();
+            goBack();
+        }
+
+        function cancelAddQuestion() {
+            clearAddQuestionForm();
+            goBack();
+        }
+
+        function clearAddQuestionForm() {
+            document.getElementById('add-q-text').value = '';
+            const ansInput = document.getElementById('add-q-ans');
+            if (ansInput) {
+                if (currentAdminType === 'TF') ansInput.value = 'O';
+                else if (currentAdminType === 'MC') ansInput.value = 'A';
+                else if (currentAdminType === 'QA') ansInput.value = '';
+            }
+            document.getElementById('add-q-img').value = '';
+            const previewBox = document.getElementById('img-preview');
+            previewBox.src = '';
+            previewBox.style.display = 'none';
+            tempImgDataDataUrl = null;
+            currentEditIndex = -1;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
     </script>
 </body>
